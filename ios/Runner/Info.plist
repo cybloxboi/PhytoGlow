@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+    <key>NSCameraUsageDescription</key>
+    <string>ต้องการใช้กล้องมือถือเพื่อตรวจจับภาพสารเรืองแสงและประมวลผลการเรืองแสง</string>
 </dict>
 </plist>
