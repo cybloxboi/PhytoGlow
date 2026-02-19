@@ -27,8 +27,13 @@ class _CameraPageState extends State<CameraPage> {
   void initState() {
     super.initState();
 
+    final backCamera = cameras.firstWhere(
+      (camera) => camera.lensDirection == CameraLensDirection.back,
+      orElse: () => cameras.first,
+    );
+
     _controller = CameraController(
-      cameras.first,
+      backCamera,
       ResolutionPreset.medium,
       enableAudio: false,
     );
