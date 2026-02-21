@@ -1,46 +1,38 @@
-import 'package:image/image.dart' as img;
 import 'package:phyto_glow/classes/luminol_result.dart';
-import 'package:phyto_glow/functions/colors/rgb_to_hsv.dart';
-import 'is_luminol_pixel.dart';
+import 'package:opencv_dart/opencv.dart' as cv;
 
-LuminolResult processLuminol(img.Image src) {
+LuminolResult processLuminol(cv.Mat src) {
   final width = src.width;
   final height = src.height;
   final totalPixels = width * height;
-  double sumLumV = 0;
-  int countLum = 0;
-  final result = img.Image(width: width, height: height);
-
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      final p = src.getPixel(x, y);
-      final hsv = rgbToHsv(p.r.toInt(), p.g.toInt(), p.b.toInt());
-      final h = hsv[0];
-      final s = hsv[1];
-      final v = hsv[2];
-
-      if (isLuminolPixel(h, s, v)) {
-        result.setPixelRgb(x, y, p.r.toInt(), p.g.toInt(), p.b.toInt());
-        sumLumV += v;
-        countLum++;
-      } else {
-        result.setPixelRgb(x, y, 0, 0, 0);
-      }
-    }
-  }
-
   double intensityPercent = 0;
 
-  if (countLum > 0) {
-    double areaRatio = countLum / totalPixels;
+  final hsv = cv.cvtColor(src, cv.COLOR_BGR2HSV);
+  final mask = cv.inRangebyScalar(
+    hsv,
+    cv.Scalar(100, 64, 102, 0),
+    cv.Scalar(130, 255, 255, 0),
+  );
+  final thresholded = cv.bitwiseAND(src, src, mask: mask);
 
-    if (areaRatio < 0.001) {
-      intensityPercent = 0;
-    } else {
-      intensityPercent = (sumLumV / totalPixels) * 100;
+  final countLum = cv.countNonZero(mask);
+
+  if (countLum > 0) {
+    final areaRatio = countLum / totalPixels;
+
+    if (areaRatio >= 0.001) {
+      final vChannel = cv.extractChannel(hsv, 2);
+      final meanV = cv.mean(vChannel, mask: mask).val1;
+      intensityPercent = ((meanV / 255.0) * areaRatio) * 100;
       intensityPercent = intensityPercent.clamp(0.0, 100.0);
+      vChannel.dispose();
     }
   }
 
-  return LuminolResult(result, intensityPercent);
+  final (_, thresholdedBytes) = cv.imencode('.jpg', thresholded);
+  hsv.dispose();
+  mask.dispose();
+  thresholded.dispose();
+
+  return LuminolResult(thresholdedBytes, intensityPercent);
 }

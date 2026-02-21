@@ -1,8 +1,8 @@
-import 'package:image/image.dart' as img;
+import 'dart:typed_data';
 
 class LuminolResult {
-  final img.Image thresholdedImage;
+  final Uint8List thresholdedBytes;
   final double intensityPercent;
 
-  LuminolResult(this.thresholdedImage, this.intensityPercent);
+  LuminolResult(this.thresholdedBytes, this.intensityPercent);
 }
