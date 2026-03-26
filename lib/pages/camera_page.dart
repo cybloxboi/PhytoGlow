@@ -1,10 +1,11 @@
 import 'package:camera/camera.dart';
-import 'package:opencv_dart/opencv.dart' as cv;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opencv_dart/opencv.dart' as cv;
+import 'package:phyto_glow/classes/roboflow_inference_result.dart';
 import 'package:phyto_glow/functions/image_processing/get_roi.dart';
 import 'package:phyto_glow/functions/image_processing/process_luminol.dart';
-import 'package:phyto_glow/main.dart';
+import 'package:phyto_glow/services/roboflow_service.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -15,15 +16,21 @@ class CameraPage extends StatefulWidget {
 
 class _CameraPageState extends State<CameraPage> {
   late CameraController _controller;
+  final RoboflowService _roboflowService = RoboflowService();
   Uint8List? thresholdedBytes;
   double meanValue = 0.0;
   bool isProcessing = false;
-  List<double> intensityHistory = [];
+  RoboflowInferenceResult? roboflowResult;
+  String? roboflowError;
 
   @override
   void initState() {
     super.initState();
+    _initializeCamera();
+  }
 
+  Future<void> _initializeCamera() async {
+    final cameras = await availableCameras();
     final backCamera = cameras.firstWhere(
       (camera) => camera.lensDirection == CameraLensDirection.back,
       orElse: () => cameras.first,
@@ -36,11 +43,10 @@ class _CameraPageState extends State<CameraPage> {
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
 
-    _controller.initialize().then((_) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    await _controller.initialize();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> captureAndProcessImage() async {
@@ -62,16 +68,21 @@ class _CameraPageState extends State<CameraPage> {
 
       roi = getROI(src);
       final result = processLuminol(roi);
+      RoboflowInferenceResult? inferenceResult;
+      String? inferenceError;
+
+      try {
+        inferenceResult = await _roboflowService.inferImage(bytes);
+      } on RoboflowException catch (e) {
+        inferenceError = e.message;
+      }
 
       if (!mounted) return;
       setState(() {
         thresholdedBytes = result.thresholdedBytes;
         meanValue = result.intensityPercent;
-
-        intensityHistory.add(meanValue);
-        if (intensityHistory.length > 50) {
-          intensityHistory.removeAt(0);
-        }
+        roboflowResult = inferenceResult;
+        roboflowError = inferenceError;
       });
     } on CameraException catch (e) {
       if (!mounted) return;
@@ -113,19 +124,67 @@ class _CameraPageState extends State<CameraPage> {
   }
 
   Widget buildResultSection() {
-    if (thresholdedBytes == null) {
+    if (thresholdedBytes == null && roboflowResult == null && roboflowError == null) {
       return const Text('ยังไม่มีผลวิเคราะห์');
     }
 
     return Column(
       children: [
-        Image.memory(thresholdedBytes!, height: 200),
+        if (thresholdedBytes != null) Image.memory(thresholdedBytes!, height: 200),
         const SizedBox(height: 10),
         Text(
           'ความสามารถในการเรืองแสง: ${meanValue.toStringAsFixed(3)}%',
           style: const TextStyle(fontSize: 22),
         ),
+        const SizedBox(height: 16),
+        buildRoboflowSection(),
       ],
+    );
+  }
+
+  Widget buildRoboflowSection() {
+    if (roboflowError != null) {
+      return Text(
+        'Roboflow error: $roboflowError',
+        style: const TextStyle(color: Colors.red),
+      );
+    }
+
+    final result = roboflowResult;
+    if (result == null) {
+      return const SizedBox.shrink();
+    }
+
+    final summary = result.classCounts.entries.map((entry) {
+      return '${entry.key}: ${entry.value}';
+    }).join(', ');
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Roboflow Inference',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text('Detections: ${result.predictions.length}'),
+            if (summary.isNotEmpty) Text('Classes: $summary'),
+            if (result.topLabel != null)
+              Text(
+                'Top: ${result.topLabel} (${((result.topConfidence ?? 0) * 100).toStringAsFixed(1)}%)',
+              ),
+            const SizedBox(height: 8),
+            ...result.predictions.take(5).map((prediction) {
+              return Text(
+                '${prediction.label} ${(prediction.confidence * 100).toStringAsFixed(1)}%',
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 

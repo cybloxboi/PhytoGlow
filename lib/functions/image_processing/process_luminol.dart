@@ -1,4 +1,4 @@
-import 'package:phyto_glow/classes/luminol_result.dart';
+import 'package:phyto_glow/classes/models/luminol_result.dart';
 import 'package:opencv_dart/opencv.dart' as cv;
 
 LuminolResult processLuminol(cv.Mat src) {
