@@ -85,7 +85,8 @@ class PhytoGlow extends StatelessWidget {
         ),
       ],
 
-      errorBuilder: (context, state) => const _MissingRouteDataPage(),
+      errorBuilder: (context, state) =>
+          _NotFoundPage(attemptedPath: state.uri.path),
     );
   }
 
@@ -186,6 +187,76 @@ class _MissingRouteDataPage extends StatelessWidget {
               '404 Not Found',
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NotFoundPage extends StatelessWidget {
+  const _NotFoundPage({required this.attemptedPath});
+
+  final String attemptedPath;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Title(
+      title: 'Phyto Glow',
+      color: const Color(0xFF3F51B5),
+      child: Scaffold(
+        appBar: getAppBar(context, 'Phyto Glow'),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ไม่พบหน้าที่ต้องการ',
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'ลิงก์ที่เปิดอยู่ไม่มีอยู่ในแอป หรืออาจถูกย้ายออกแล้ว',
+                        style: textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF6F7FB),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          attemptedPath,
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      FilledButton.icon(
+                        onPressed: () => context.goNamed('home'),
+                        icon: const Icon(Icons.home_rounded),
+                        label: const Text('กลับหน้าแรก'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),
