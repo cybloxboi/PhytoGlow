@@ -16,7 +16,7 @@ class WhiteBloodCellAnalysisPage extends StatefulWidget {
 
 class _WhiteBloodCellAnalysisPageState
     extends State<WhiteBloodCellAnalysisPage> {
-  static const double _pageMaxWidth = 960;
+  static const double _pageMaxWidth = 560;
   static const double _previewMaxHeight = 320;
   static const double _previewAspectRatio = 4 / 3;
   static const double _cardHorizontalPadding = 16;
@@ -118,49 +118,63 @@ class _WhiteBloodCellAnalysisPageState
     return Scaffold(
       appBar: getAppBar('White Blood Cell Analysis'),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Text(
-                  'อัปโหลดภาพเพื่อตรวจสอบและเตรียมวิเคราะห์เม็ดเลือดขาว',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'อัปโหลดภาพเพื่อตรวจสอบและเตรียมวิเคราะห์เม็ดเลือดขาว',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'เมื่อกดเริ่มวิเคราะห์ ระบบจะส่งรูปภาพนี้ไปยัง Roboflow API แล้วเปิดหน้าผลลัพธ์ให้อัตโนมัติ',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.72,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _isPickingImage ? null : _pickImage,
+                        icon: _isPickingImage
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.upload_rounded),
+                        label: Text(
+                          _isPickingImage
+                              ? 'กำลังเลือกรูปภาพ...'
+                              : 'อัปโหลดรูปภาพ',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: _selectedImageBytes == null
+                          ? _buildEmptyState(theme)
+                          : _buildSelectedImageCard(theme),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'เมื่อกดเริ่มวิเคราะห์ ระบบจะส่งรูปภาพนี้ไปยัง Roboflow API แล้วเปิดหน้าผลลัพธ์ให้อัตโนมัติ',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: _isPickingImage ? null : _pickImage,
-                  icon: _isPickingImage
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.upload_rounded),
-                  label: Text(
-                    _isPickingImage ? 'กำลังเลือกรูปภาพ...' : 'อัปโหลดรูปภาพ',
-                  ),
-                ),
-                const SizedBox(height: 20),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  child: _selectedImageBytes == null
-                      ? _buildEmptyState(theme)
-                      : _buildSelectedImageCard(theme),
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

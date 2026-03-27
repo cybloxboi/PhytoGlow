@@ -46,160 +46,172 @@ class ResultPage extends StatelessWidget {
     return Scaffold(
       appBar: getAppBar('ผลการวิเคราะห์'),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                _SectionCard(
-                  child: Column(
-                    children: [
-                      Row(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionCard(
+                      child: Column(
                         children: [
-                          Icon(
-                            Icons.check_circle_rounded,
-                            size: 50,
-                            color: Colors.green,
-                          ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 8,
+                          Row(
                             children: [
-                              Text(
-                                'วิเคราะห์เสร็จสิ้น',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
+                              Icon(
+                                Icons.check_circle_rounded,
+                                size: 50,
+                                color: Colors.green,
                               ),
-                              Text(
-                                'White Blood Cell Analysis',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.72,
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 8,
+                                children: [
+                                  Text(
+                                    'วิเคราะห์เสร็จสิ้น',
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                ),
+                                  Text(
+                                    'White Blood Cell Analysis',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.72),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _SectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 320),
-                            child: AspectRatio(
-                              aspectRatio: aspectRatio,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Image.memory(imageBytes, fit: BoxFit.contain),
-                                  Positioned.fill(
-                                    child: CustomPaint(
-                                      painter: _BoundingBoxPainter(
-                                        predictions: wbcPredictions,
-                                        imageWidth: imageWidth,
-                                        imageHeight: imageHeight,
-                                        color: theme.colorScheme.secondary,
+                    ),
+                    const SizedBox(height: 16),
+                    _SectionCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxHeight: 320,
+                                ),
+                                child: AspectRatio(
+                                  aspectRatio: aspectRatio,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Image.memory(
+                                        imageBytes,
+                                        fit: BoxFit.contain,
                                       ),
-                                    ),
+                                      Positioned.fill(
+                                        child: CustomPaint(
+                                          painter: _BoundingBoxPainter(
+                                            predictions: wbcPredictions,
+                                            imageWidth: imageWidth,
+                                            imageHeight: imageHeight,
+                                            color: theme.colorScheme.secondary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        imageName,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        wbcPredictions.isEmpty
-                            ? 'ไม่พบ WBC จากผลลัพธ์ Roboflow'
-                            : 'แสดงกรอบเฉพาะวัตถุที่เป็น WBC จาก Roboflow',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.72,
+                          const SizedBox(height: 16),
+                          Text(
+                            imageName,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _SectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ภาพรวมผลลัพธ์ WBC',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          _MetricTile(
-                            label: 'จำนวน WBC ที่ตรวจพบ',
-                            value: '${wbcPredictions.length}',
-                          ),
-                          _MetricTile(
-                            label: 'ความมั่นใจสูงสุด',
-                            value: topPrediction == null
-                                ? '-'
-                                : '${(topPrediction.confidence * 100).toStringAsFixed(1)}%',
+                          const SizedBox(height: 8),
+                          Text(
+                            wbcPredictions.isEmpty
+                                ? 'ไม่พบ เม็ดเลือดขาว จากผลลัพธ์ Roboflow'
+                                : 'แสดงกรอบเฉพาะวัตถุที่เป็น เม็ดเลือดขาว จาก Roboflow',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.72,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _SectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'รายละเอียด WBC',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _SectionCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ภาพรวมผลลัพธ์เม็ดเลือดขาวที่พบ',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                _MetricTile(
+                                  label: 'จำนวนเม็ดเลือดขาวที่ตรวจพบ',
+                                  value: '${wbcPredictions.length}',
+                                ),
+                                _MetricTile(
+                                  label: 'ความมั่นใจสูงสุด',
+                                  value: topPrediction == null
+                                      ? '-'
+                                      : '${(topPrediction.confidence * 100).toStringAsFixed(1)}%',
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      if (wbcPredictions.isEmpty)
-                        Text(
-                          'ไม่มี prediction ที่ผ่านเงื่อนไข WBC',
-                          style: theme.textTheme.bodyMedium,
-                        )
-                      else
-                        ...wbcPredictions.map(
-                          (prediction) =>
-                              _PredictionTile(prediction: prediction),
-                        ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 16),
+                    _SectionCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'รายละเอียดเม็ดเลือดขาว',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          if (wbcPredictions.isEmpty)
+                            Text(
+                              'ไม่มี prediction ที่ผ่านเงื่อนไข เม็ดเลือดขาว',
+                              style: theme.textTheme.bodyMedium,
+                            )
+                          else
+                            ...wbcPredictions.map(
+                              (prediction) =>
+                                  _PredictionTile(prediction: prediction),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
