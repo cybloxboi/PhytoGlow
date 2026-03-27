@@ -146,7 +146,9 @@ class _WhiteBloodCellAnalysisPageState
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
-                        onPressed: _isPickingImage ? null : _pickImage,
+                        onPressed: _isPickingImage || _isAnalyzing
+                            ? null
+                            : _pickImage,
                         icon: _isPickingImage
                             ? const SizedBox(
                                 width: 18,

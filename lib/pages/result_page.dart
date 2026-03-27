@@ -1,12 +1,15 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:phyto_glow/classes/roboflow_inference_result.dart';
 import 'package:phyto_glow/classes/roboflow_prediction.dart';
+import 'package:phyto_glow/functions/files/download_bytes.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
 
-class ResultPage extends StatelessWidget {
+class ResultPage extends StatefulWidget {
   const ResultPage({
     super.key,
     required this.imageBytes,
@@ -17,24 +20,26 @@ class ResultPage extends StatelessWidget {
   final Uint8List imageBytes;
   final String imageName;
   final RoboflowInferenceResult result;
+
+  @override
+  State<ResultPage> createState() => _ResultPageState();
+}
+
+class _ResultPageState extends State<ResultPage> {
   static const double _pageMaxWidth = 700;
+
+  final GlobalKey _imageExportKey = GlobalKey();
+  bool _isDownloading = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final wbcPredictions = result.predictions.where(_isWbcPrediction).toList()
-      ..sort((a, b) => b.confidence.compareTo(a.confidence));
-    final wbcClassCounts = <String, int>{};
-    for (final prediction in wbcPredictions) {
-      wbcClassCounts.update(
-        prediction.label,
-        (count) => count + 1,
-        ifAbsent: () => 1,
-      );
-    }
+    final wbcPredictions =
+        widget.result.predictions.where(_isWbcPrediction).toList()
+          ..sort((a, b) => b.confidence.compareTo(a.confidence));
     final topPrediction = wbcPredictions.isEmpty ? null : wbcPredictions.first;
-    final imageWidth = result.imageWidth?.toDouble();
-    final imageHeight = result.imageHeight?.toDouble();
+    final imageWidth = widget.result.imageWidth?.toDouble();
+    final imageHeight = widget.result.imageHeight?.toDouble();
     final aspectRatio =
         imageWidth != null &&
             imageHeight != null &&
@@ -56,34 +61,31 @@ class ResultPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _SectionCard(
-                      child: Column(
+                      child: Row(
                         children: [
-                          Row(
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            size: 50,
+                            color: Colors.green,
+                          ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.check_circle_rounded,
-                                size: 50,
-                                color: Colors.green,
+                              Text(
+                                'วิเคราะห์เสร็จสิ้น',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                              const SizedBox(width: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: 8,
-                                children: [
-                                  Text(
-                                    'วิเคราะห์เสร็จสิ้น',
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'White Blood Cell Analysis',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.72,
                                   ),
-                                  Text(
-                                    'White Blood Cell Analysis',
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.72),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ],
                           ),
@@ -96,32 +98,36 @@ class ResultPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Center(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxHeight: 320,
-                                ),
-                                child: AspectRatio(
-                                  aspectRatio: aspectRatio,
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      Image.memory(
-                                        imageBytes,
-                                        fit: BoxFit.contain,
-                                      ),
-                                      Positioned.fill(
-                                        child: CustomPaint(
-                                          painter: _BoundingBoxPainter(
-                                            predictions: wbcPredictions,
-                                            imageWidth: imageWidth,
-                                            imageHeight: imageHeight,
-                                            color: theme.colorScheme.secondary,
+                            child: RepaintBoundary(
+                              key: _imageExportKey,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 320,
+                                  ),
+                                  child: AspectRatio(
+                                    aspectRatio: aspectRatio,
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        Image.memory(
+                                          widget.imageBytes,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        Positioned.fill(
+                                          child: CustomPaint(
+                                            painter: _BoundingBoxPainter(
+                                              predictions: wbcPredictions,
+                                              imageWidth: imageWidth,
+                                              imageHeight: imageHeight,
+                                              color:
+                                                  theme.colorScheme.secondary,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -129,7 +135,7 @@ class ResultPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            imageName,
+                            widget.imageName,
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
@@ -142,6 +148,29 @@ class ResultPage extends StatelessWidget {
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurface.withValues(
                                 alpha: 0.72,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: FilledButton.icon(
+                              onPressed: _isDownloading
+                                  ? null
+                                  : _downloadAnnotatedImage,
+                              icon: _isDownloading
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.download_rounded),
+                              label: Text(
+                                _isDownloading
+                                    ? 'กำลังเตรียมไฟล์...'
+                                    : 'ดาวน์โหลดภาพผลลัพธ์',
                               ),
                             ),
                           ),
@@ -215,6 +244,64 @@ class ResultPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _downloadAnnotatedImage() async {
+    if (_isDownloading) return;
+
+    setState(() {
+      _isDownloading = true;
+    });
+
+    try {
+      final boundary =
+          _imageExportKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundary == null) {
+        throw StateError('ไม่พบภาพสำหรับดาวน์โหลด');
+      }
+
+      final image = await boundary.toImage(pixelRatio: 3);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
+
+      final bytes = byteData?.buffer.asUint8List();
+      if (bytes == null || bytes.isEmpty) {
+        throw StateError('ไม่สามารถสร้างไฟล์ภาพได้');
+      }
+
+      await downloadBytes(
+        bytes: bytes,
+        fileName: _buildDownloadFileName(widget.imageName),
+        mimeType: 'image/png',
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('ดาวน์โหลดภาพผลลัพธ์แล้ว')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('ดาวน์โหลดภาพไม่สำเร็จ\n$error')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+        });
+      }
+    }
+  }
+
+  String _buildDownloadFileName(String sourceName) {
+    final normalized = sourceName
+        .replaceAll(RegExp(r'\.[^.]+$'), '')
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_-]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    final baseName = normalized.isEmpty ? 'wbc_result' : normalized;
+    return '${baseName}_wbc_result.png';
   }
 
   bool _isWbcPrediction(RoboflowPrediction prediction) {
