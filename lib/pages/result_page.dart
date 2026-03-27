@@ -63,182 +63,181 @@ class _ResultPageState extends State<ResultPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                    _SectionCard(
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle_rounded,
-                            size: 50,
-                            color: Colors.green,
-                          ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'วิเคราะห์เสร็จสิ้น',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'White Blood Cell Analysis',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.72,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _SectionCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: RepaintBoundary(
-                              key: _imageExportKey,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxHeight: 320,
-                                  ),
-                                  child: AspectRatio(
-                                    aspectRatio: aspectRatio,
-                                    child: Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        Image.memory(
-                                          widget.imageBytes,
-                                          fit: BoxFit.contain,
-                                        ),
-                                        Positioned.fill(
-                                          child: CustomPaint(
-                                            painter: _BoundingBoxPainter(
-                                              predictions: wbcPredictions,
-                                              imageWidth: imageWidth,
-                                              imageHeight: imageHeight,
-                                              color:
-                                                  theme.colorScheme.secondary,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            widget.imageName,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            wbcPredictions.isEmpty
-                                ? 'ไม่พบ เม็ดเลือดขาว จากผลลัพธ์ Roboflow'
-                                : 'แสดงกรอบเฉพาะวัตถุที่เป็น เม็ดเลือดขาว จาก Roboflow',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.72,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: FilledButton.icon(
-                              onPressed: _isDownloading
-                                  ? null
-                                  : _downloadAnnotatedImage,
-                              icon: _isDownloading
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.download_rounded),
-                              label: Text(
-                                _isDownloading
-                                    ? 'กำลังเตรียมไฟล์...'
-                                    : 'ดาวน์โหลดภาพผลลัพธ์',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _SectionCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      _SectionCard(
+                        child: Row(
                           children: [
-                            Text(
-                              'ภาพรวมผลลัพธ์เม็ดเลือดขาวที่พบ',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 50,
+                              color: Colors.green,
                             ),
-                            const SizedBox(height: 16),
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _MetricTile(
-                                  label: 'จำนวนเม็ดเลือดขาวที่ตรวจพบ',
-                                  value: '${wbcPredictions.length}',
+                                Text(
+                                  'วิเคราะห์เสร็จสิ้น',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                                _MetricTile(
-                                  label: 'ความมั่นใจสูงสุด',
-                                  value: topPrediction == null
-                                      ? '-'
-                                      : '${(topPrediction.confidence * 100).toStringAsFixed(1)}%',
+                                const SizedBox(height: 8),
+                                Text(
+                                  'White Blood Cell Analysis',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.72),
+                                  ),
                                 ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _SectionCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'รายละเอียดเม็ดเลือดขาว',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
+                      const SizedBox(height: 16),
+                      _SectionCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Center(
+                              child: RepaintBoundary(
+                                key: _imageExportKey,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 320,
+                                    ),
+                                    child: AspectRatio(
+                                      aspectRatio: aspectRatio,
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          Image.memory(
+                                            widget.imageBytes,
+                                            fit: BoxFit.contain,
+                                          ),
+                                          Positioned.fill(
+                                            child: CustomPaint(
+                                              painter: _BoundingBoxPainter(
+                                                predictions: wbcPredictions,
+                                                imageWidth: imageWidth,
+                                                imageHeight: imageHeight,
+                                                color:
+                                                    theme.colorScheme.secondary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          if (wbcPredictions.isEmpty)
+                            const SizedBox(height: 16),
                             Text(
-                              'ไม่มี prediction ที่ผ่านเงื่อนไข เม็ดเลือดขาว',
-                              style: theme.textTheme.bodyMedium,
-                            )
-                          else
-                            ...wbcPredictions.map(
-                              (prediction) =>
-                                  _PredictionTile(prediction: prediction),
+                              widget.imageName,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              wbcPredictions.isEmpty
+                                  ? 'ไม่พบ เม็ดเลือดขาว จากผลลัพธ์ Roboflow'
+                                  : 'แสดงกรอบเฉพาะวัตถุที่เป็น เม็ดเลือดขาว จาก Roboflow',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.72,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: FilledButton.icon(
+                                onPressed: _isDownloading
+                                    ? null
+                                    : _downloadAnnotatedImage,
+                                icon: _isDownloading
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.download_rounded),
+                                label: Text(
+                                  _isDownloading
+                                      ? 'กำลังเตรียมไฟล์...'
+                                      : 'ดาวน์โหลดภาพผลลัพธ์',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: _SectionCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ภาพรวมผลลัพธ์เม็ดเลือดขาวที่พบ',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: [
+                                  _MetricTile(
+                                    label: 'จำนวนเม็ดเลือดขาวที่ตรวจพบ',
+                                    value: '${wbcPredictions.length}',
+                                  ),
+                                  _MetricTile(
+                                    label: 'ความมั่นใจสูงสุด',
+                                    value: topPrediction == null
+                                        ? '-'
+                                        : '${(topPrediction.confidence * 100).toStringAsFixed(1)}%',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _SectionCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'รายละเอียดเม็ดเลือดขาว',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            if (wbcPredictions.isEmpty)
+                              Text(
+                                'ไม่มี prediction ที่ผ่านเงื่อนไข เม็ดเลือดขาว',
+                                style: theme.textTheme.bodyMedium,
+                              )
+                            else
+                              ...wbcPredictions.map(
+                                (prediction) =>
+                                    _PredictionTile(prediction: prediction),
+                              ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -280,12 +279,18 @@ class _ResultPageState extends State<ResultPage> {
         mimeType: 'image/png',
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('ดาวน์โหลดภาพผลลัพธ์แล้ว')));
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('ดาวน์โหลดภาพไม่สำเร็จ\n$error')));
