@@ -36,7 +36,7 @@ class PhytoGlow extends StatelessWidget {
           builder: (context, state) => const HomePage(),
           routes: [
             GoRoute(
-              path: '/fluorescent',
+              path: 'fluorescent',
               name: 'fluorescent',
               builder: (context, state) => const FluorescentDetectionPage(),
               routes: [
@@ -59,7 +59,7 @@ class PhytoGlow extends StatelessWidget {
               ],
             ),
             GoRoute(
-              path: '/wbc',
+              path: 'wbc',
               name: 'wbc',
               builder: (context, state) => const WhiteBloodCellAnalysisPage(),
               routes: [
