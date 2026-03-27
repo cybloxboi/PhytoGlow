@@ -10,7 +10,13 @@ Future<PickedImageData?> pickImageBytes() async {
   final input = html.FileUploadInputElement()
     ..accept = 'image/*'
     ..multiple = false
-    ..style.display = 'none';
+    ..style.position = 'fixed'
+    ..style.left = '-9999px'
+    ..style.top = '0'
+    ..style.width = '1px'
+    ..style.height = '1px'
+    ..style.opacity = '0'
+    ..style.pointerEvents = 'none';
 
   html.document.body?.append(input);
 
@@ -57,10 +63,7 @@ Future<PickedImageData?> pickImageBytes() async {
     });
 
     reader.readAsArrayBuffer(file);
-    return completer.future.timeout(
-      const Duration(minutes: 2),
-      onTimeout: () => null,
-    );
+    return await completer.future;
   } finally {
     input.remove();
   }

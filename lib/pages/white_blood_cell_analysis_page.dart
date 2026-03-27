@@ -17,7 +17,7 @@ class WhiteBloodCellAnalysisPage extends StatefulWidget {
 
 class _WhiteBloodCellAnalysisPageState
     extends State<WhiteBloodCellAnalysisPage> {
-  static const double _pageMaxWidth = 560;
+  static const double _pageMaxWidth = 700;
   static const double _previewMaxHeight = 320;
   static const double _previewAspectRatio = 4 / 3;
   static const double _cardHorizontalPadding = 16;

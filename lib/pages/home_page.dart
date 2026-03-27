@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
-  static const double _pageMaxWidth = 960;
+  static const double _pageMaxWidth = 700;
 
   late final AnimationController _staggerController;
 
