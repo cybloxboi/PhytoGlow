@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phyto_glow/classes/data/result_page_data.dart';
@@ -31,12 +30,21 @@ class _WhiteBloodCellAnalysisPageState
   bool _isPickingImage = false;
   bool _isAnalyzing = false;
 
+  bool get _usesIosWebPickerWorkaround =>
+      kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
   Future<void> _pickImage() async {
     if (_isPickingImage) return;
 
-    setState(() {
+    final showPickingLoader = !_usesIosWebPickerWorkaround;
+
+    if (showPickingLoader) {
+      setState(() {
+        _isPickingImage = true;
+      });
+    } else {
       _isPickingImage = true;
-    });
+    }
 
     try {
       final pickedImage = await pickImageBytes();
@@ -62,10 +70,12 @@ class _WhiteBloodCellAnalysisPageState
       if (!mounted) return;
       _showError('ไม่สามารถเลือกรูปภาพได้ กรุณาลองใหม่อีกครั้ง\n$error');
     } finally {
-      if (mounted) {
+      if (showPickingLoader && mounted) {
         setState(() {
           _isPickingImage = false;
         });
+      } else {
+        _isPickingImage = false;
       }
     }
   }

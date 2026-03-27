@@ -1,69 +1,67 @@
-// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
-
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:typed_data';
+import 'dart:js_interop';
 
 import 'package:phyto_glow/classes/data/picked_image_data.dart';
+import 'package:web/web.dart' as web;
 
 Future<PickedImageData?> pickImageBytes() async {
-  final input = html.FileUploadInputElement()
+  final input = web.HTMLInputElement()
+    ..type = 'file'
     ..accept = 'image/*'
-    ..multiple = false
-    ..style.position = 'fixed'
-    ..style.left = '-9999px'
-    ..style.top = '0'
-    ..style.width = '1px'
-    ..style.height = '1px'
-    ..style.opacity = '0'
-    ..style.pointerEvents = 'none';
+    ..multiple = false;
 
-  html.document.body?.append(input);
+  input.style
+    ..position = 'fixed'
+    ..top = '0'
+    ..left = '0'
+    ..width = '1px'
+    ..height = '1px'
+    ..opacity = '0'
+    ..overflow = 'hidden'
+    ..pointerEvents = 'none';
+
+  web.document.body?.append(input);
 
   try {
     input.click();
     await input.onChange.first;
 
     final files = input.files;
-    final file = files == null || files.isEmpty ? null : files.first;
+    final file = files == null || files.length == 0 ? null : files.item(0);
     if (file == null) return null;
 
-    final reader = html.FileReader();
+    final reader = web.FileReader();
     final completer = Completer<PickedImageData?>();
 
-    reader.onLoadEnd.first.then((_) {
-      final result = reader.result;
-      if (result is Uint8List) {
-        completer.complete(
-          PickedImageData(
-            name: file.name.isEmpty ? 'เลือกรูปภาพแล้ว' : file.name,
-            bytes: result,
-          ),
-        );
+    reader.onloadend = ((web.Event _) {
+      final bytes = (reader.result as JSArrayBuffer?)?.toDart.asUint8List();
+      if (bytes == null) {
+        completer.complete(null);
         return;
       }
 
-      if (result is List<int>) {
-        completer.complete(
-          PickedImageData(
-            name: file.name.isEmpty ? 'เลือกรูปภาพแล้ว' : file.name,
-            bytes: Uint8List.fromList(result),
-          ),
-        );
-        return;
-      }
+      completer.complete(
+        PickedImageData(
+          name: file.name.isEmpty ? 'เลือกรูปภาพแล้ว' : file.name,
+          bytes: bytes,
+        ),
+      );
+    }).toJS;
 
-      completer.complete(null);
-    });
-
-    reader.onError.first.then((_) {
+    reader.onerror = ((web.Event _) {
       if (!completer.isCompleted) {
-        completer.completeError(StateError('ไม่สามารถอ่านไฟล์รูปภาพบนเว็บได้'));
+        final message = reader.error?.message;
+        completer.completeError(
+          StateError(message ?? 'ไม่สามารถอ่านไฟล์รูปภาพบนเว็บได้'),
+        );
       }
-    });
+    }).toJS;
 
     reader.readAsArrayBuffer(file);
-    return await completer.future;
+    return completer.future.timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => null,
+    );
   } finally {
     input.remove();
   }
