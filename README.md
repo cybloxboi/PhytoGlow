@@ -16,14 +16,20 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-## Roboflow configuration
+## Vercel
 
-Create `/Users/tutor/StudioProjects/phyto_glow/lib/config/roboflow_config.dart`
-from `/Users/tutor/StudioProjects/phyto_glow/lib/config/roboflow_config.example.dart`
-and put your Roboflow values there.
+Set these environment variables in Vercel:
 
-That file is ignored by Git so the key will not be committed with the project.
+- `ROBOFLOW_API_KEY`
+- `ROBOFLOW_MODEL_ID`
+- `ROBOFLOW_API_URL` (optional)
 
-Note: this keeps the key out of the repository, but a client-side Flutter app
-still cannot truly hide a secret. If the key must remain private, move the
-Roboflow request to your own backend.
+Then run the config generator before Flutter build. Example install/build flow:
+
+```bash
+if cd flutter; then git pull && cd ..; else git clone https://github.com/flutter/flutter.git; fi && \
+./scripts/create_roboflow_config.sh && \
+flutter/bin/flutter doctor && \
+flutter/bin/flutter clean && \
+flutter/bin/flutter config --enable-web
+```
