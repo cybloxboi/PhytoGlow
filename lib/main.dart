@@ -248,10 +248,12 @@ class _NotFoundPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      FilledButton.icon(
-                        onPressed: () => context.goNamed('home'),
-                        icon: const Icon(Icons.home_rounded),
-                        label: const Text('กลับหน้าแรก'),
+                      Center(
+                        child: FilledButton.icon(
+                          onPressed: () => context.goNamed('home'),
+                          icon: const Icon(Icons.home_rounded),
+                          label: const Text('กลับหน้าแรก'),
+                        ),
                       ),
                     ],
                   ),

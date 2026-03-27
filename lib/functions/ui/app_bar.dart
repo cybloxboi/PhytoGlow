@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 AppBar getAppBar(BuildContext context, String title) {
   final navigator = Navigator.of(context);
   final router = GoRouter.of(context);
-  final currentLocation = GoRouterState.of(context).matchedLocation;
+  final currentLocation = router.routeInformationProvider.value.uri.path;
   final shouldShowBackButton = navigator.canPop() || currentLocation != '/';
 
   return AppBar(
