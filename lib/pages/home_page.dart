@@ -16,6 +16,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
+  static const double _pageMaxWidth = 960;
+
   late final AnimationController _staggerController;
 
   final List<DetectionItem> detectionItems = [
@@ -102,59 +104,64 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
       appBar: getAppBar('Phyto Glow'),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text(
-              'Welcome back!\nยินดีต้อนรับกลับ',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            ...List.generate(detectionItems.length, (index) {
-              final item = detectionItems[index];
-
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: index == detectionItems.length - 1 ? 0 : 16,
-                ),
-                child: DetectionCard(
-                  key: ValueKey(item.title),
-                  title: item.title,
-                  description: item.description,
-                  buttonText: item.buttonText,
-                  icon: item.icon,
-                  onPressed: () => _openDetectionPage(item),
-                  animation: _buildCardAnimation(index),
-                ),
-              );
-            }),
-            const SizedBox(height: 16),
-            Row(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
               children: [
-                Expanded(
-                  child: Text(
-                    'Recent Analysis\nการวินิจฉัยล่าสุด',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                Text(
+                  'Welcome back!\nยินดีต้อนรับกลับ',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                const SizedBox(height: 16),
+                ...List.generate(detectionItems.length, (index) {
+                  final item = detectionItems[index];
+
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index == detectionItems.length - 1 ? 0 : 16,
                     ),
-                  ),
-                  child: const Text('ดูทั้งหมด'),
+                    child: DetectionCard(
+                      key: ValueKey(item.title),
+                      title: item.title,
+                      description: item.description,
+                      buttonText: item.buttonText,
+                      icon: item.icon,
+                      onPressed: () => _openDetectionPage(item),
+                      animation: _buildCardAnimation(index),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Recent Analysis\nการวินิจฉัยล่าสุด',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {},
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: const Text('ดูทั้งหมด'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ResultHorizontalList(
+                  items: resultItems,
+                  onItemTap: _handleResultTap,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            ResultHorizontalList(
-              items: resultItems,
-              onItemTap: _handleResultTap,
-            ),
-          ],
+          ),
         ),
       ),
     );

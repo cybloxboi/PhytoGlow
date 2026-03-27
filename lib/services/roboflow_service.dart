@@ -3,17 +3,24 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:phyto_glow/classes/roboflow_inference_result.dart';
+import 'package:phyto_glow/config/roboflow_config.dart';
 
 class RoboflowService {
-  static const String _apiUrl = 'https://serverless.roboflow.com';
-  static const String _apiKey = 'xpamAda3bPe450nKuFjc';
-  static const String _modelId = 'bccd-ouzjz/1';
+  static const String _apiUrl = RoboflowConfig.apiUrl;
+  static const String _apiKey = RoboflowConfig.apiKey;
+  static const String _modelId = RoboflowConfig.modelId;
 
   final http.Client _client;
 
   RoboflowService({http.Client? client}) : _client = client ?? http.Client();
 
   Future<RoboflowInferenceResult> inferImage(Uint8List imageBytes) async {
+    if (_apiKey.isEmpty) {
+      throw const RoboflowException(
+        'Roboflow API key is missing. Set it in lib/config/roboflow_config.dart',
+      );
+    }
+
     final uri = Uri.parse('$_apiUrl/$_modelId').replace(
       queryParameters: <String, String>{
         'api_key': _apiKey,
@@ -24,9 +31,7 @@ class RoboflowService {
 
     final response = await _client.post(
       uri,
-      headers: const <String, String>{
-        'Content-Type': 'text/plain',
-      },
+      headers: const <String, String>{'Content-Type': 'text/plain'},
       body: base64Encode(imageBytes),
     );
 

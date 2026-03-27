@@ -5,21 +5,6 @@ import 'package:phyto_glow/pages/home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    return Material(
-      color: const Color(0xFFF6F7FB),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            'This browser could not render the page correctly.\nPlease try opening in Chrome, Safari, or your default browser.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  };
-
   runApp(const PhytoGlow());
 }
 
@@ -56,10 +41,7 @@ class PhytoGlow extends StatelessWidget {
 
     return MaterialApp(
       locale: const Locale('th'),
-      supportedLocales: const <Locale>[
-        Locale('th'),
-        Locale('en'),
-      ],
+      supportedLocales: const [Locale('th'), Locale('en')],
       localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

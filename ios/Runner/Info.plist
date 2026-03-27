@@ -45,6 +45,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>ต้องการเข้าถึงรูปภาพเพื่ออัปโหลดภาพสำหรับวิเคราะห์เม็ดเลือดขาว</string>
     <key>NSCameraUsageDescription</key>
     <string>ต้องการใช้กล้องมือถือเพื่อตรวจจับภาพสารเรืองแสงและประมวลผลการเรืองแสง</string>
 </dict>
