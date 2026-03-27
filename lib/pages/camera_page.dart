@@ -2,7 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opencv_dart/opencv.dart' as cv;
-import 'package:phyto_glow/classes/roboflow_inference_result.dart';
+import 'package:phyto_glow/classes/roboflow/roboflow_inference_result.dart';
 import 'package:phyto_glow/functions/image_processing/get_roi.dart';
 import 'package:phyto_glow/functions/image_processing/process_luminol.dart';
 import 'package:phyto_glow/services/roboflow_service.dart';

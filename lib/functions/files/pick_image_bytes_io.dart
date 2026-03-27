@@ -1,5 +1,5 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:phyto_glow/classes/picked_image_data.dart';
+import 'package:phyto_glow/classes/data/picked_image_data.dart';
 
 Future<PickedImageData?> pickImageBytes() async {
   final result = await FilePicker.platform.pickFiles(

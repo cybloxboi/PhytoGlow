@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phyto_glow/classes/models/detection_item.dart';
 import 'package:phyto_glow/classes/models/detection_result.dart';
 import 'package:phyto_glow/classes/ui/detection_card.dart';
 import 'package:phyto_glow/classes/ui/result_horizontal_list.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
-import 'package:phyto_glow/pages/fluorescent_detection_page.dart';
-import 'package:phyto_glow/pages/white_blood_cell_analysis_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -82,91 +81,93 @@ class _HomePageState extends State<HomePage>
   }
 
   void _openDetectionPage(DetectionItem item) {
-    Widget page;
-
     switch (item.title) {
       case 'Fluorescent Detection':
-        page = const FluorescentDetectionPage();
+        context.goNamed('fluorescent');
+        return;
       case 'White Blood Cell Analysis':
-        page = const WhiteBloodCellAnalysisPage();
+        context.goNamed('wbc');
+        return;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('ยังไม่มีหน้าสำหรับ ${item.title}')),
         );
         return;
     }
-
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getAppBar('Phyto Glow'),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back!\nยินดีต้อนรับกลับ',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    ...List.generate(detectionItems.length, (index) {
-                      final item = detectionItems[index];
+    return Title(
+      title: 'Phyto Glow',
+      color: const Color(0xFF3F51B5),
+      child: Scaffold(
+        appBar: getAppBar(context, 'Phyto Glow'),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome back!\nยินดีต้อนรับกลับ',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      ...List.generate(detectionItems.length, (index) {
+                        final item = detectionItems[index];
 
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == detectionItems.length - 1 ? 0 : 16,
-                        ),
-                        child: DetectionCard(
-                          key: ValueKey(item.title),
-                          title: item.title,
-                          description: item.description,
-                          buttonText: item.buttonText,
-                          icon: item.icon,
-                          onPressed: () => _openDetectionPage(item),
-                          animation: _buildCardAnimation(index),
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Recent Analysis\nการวินิจฉัยล่าสุด',
-                            style: Theme.of(context).textTheme.titleLarge,
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: index == detectionItems.length - 1 ? 0 : 16,
                           ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                          child: DetectionCard(
+                            key: ValueKey(item.title),
+                            title: item.title,
+                            description: item.description,
+                            buttonText: item.buttonText,
+                            icon: item.icon,
+                            onPressed: () => _openDetectionPage(item),
+                            animation: _buildCardAnimation(index),
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Recent Analysis\nการวินิจฉัยล่าสุด',
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
                           ),
-                          child: const Text('ดูทั้งหมด'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    ResultHorizontalList(
-                      items: resultItems,
-                      onItemTap: _handleResultTap,
-                    ),
-                  ],
+                          TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                            child: const Text('ดูทั้งหมด'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      ResultHorizontalList(
+                        items: resultItems,
+                        onItemTap: _handleResultTap,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

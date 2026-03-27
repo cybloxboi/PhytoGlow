@@ -1,9 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:phyto_glow/classes/data/result_page_data.dart';
 import 'package:phyto_glow/functions/files/pick_image_bytes.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
-import 'package:phyto_glow/pages/result_page.dart';
 import 'package:phyto_glow/services/roboflow_service.dart';
 
 class WhiteBloodCellAnalysisPage extends StatefulWidget {
@@ -81,13 +82,12 @@ class _WhiteBloodCellAnalysisPageState
       final result = await _roboflowService.inferImage(imageBytes);
       if (!mounted) return;
 
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => ResultPage(
-            imageBytes: imageBytes,
-            imageName: _selectedImageName ?? 'รูปภาพที่อัปโหลด',
-            result: result,
-          ),
+      context.goNamed(
+        'wbc-result',
+        extra: ResultPageData(
+          imageBytes: imageBytes,
+          imageName: _selectedImageName ?? 'รูปภาพที่อัปโหลด',
+          result: result,
         ),
       );
     } on RoboflowException catch (error) {
@@ -115,68 +115,72 @@ class _WhiteBloodCellAnalysisPageState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: getAppBar('White Blood Cell Analysis'),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'อัปโหลดภาพเพื่อตรวจสอบและเตรียมวิเคราะห์เม็ดเลือดขาว',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'เมื่อกดเริ่มวิเคราะห์ ระบบจะส่งรูปภาพนี้ไปยัง Roboflow API แล้วเปิดหน้าผลลัพธ์ให้อัตโนมัติ',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.72,
+    return Title(
+      title: 'Phyto Glow',
+      color: const Color(0xFF3F51B5),
+      child: Scaffold(
+        appBar: getAppBar(context, 'White Blood Cell Analysis'),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'อัปโหลดภาพเพื่อตรวจสอบและเตรียมวิเคราะห์เม็ดเลือดขาว',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: _isPickingImage || _isAnalyzing
-                            ? null
-                            : _pickImage,
-                        icon: _isPickingImage
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.upload_rounded),
-                        label: Text(
-                          _isPickingImage
-                              ? 'กำลังเลือกรูปภาพ...'
-                              : 'อัปโหลดรูปภาพ',
+                      const SizedBox(height: 12),
+                      Text(
+                        'เมื่อกดเริ่มวิเคราะห์ ระบบจะส่งรูปภาพนี้ไปยัง Roboflow API แล้วเปิดหน้าผลลัพธ์ให้อัตโนมัติ',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.72,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      child: _selectedImageBytes == null
-                          ? _buildEmptyState(theme)
-                          : _buildSelectedImageCard(theme),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: _isPickingImage || _isAnalyzing
+                              ? null
+                              : _pickImage,
+                          icon: _isPickingImage
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.upload_rounded),
+                          label: Text(
+                            _isPickingImage
+                                ? 'กำลังเลือกรูปภาพ...'
+                                : 'อัปโหลดรูปภาพ',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        child: _selectedImageBytes == null
+                            ? _buildEmptyState(theme)
+                            : _buildSelectedImageCard(theme),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

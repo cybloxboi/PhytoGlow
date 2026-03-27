@@ -4,8 +4,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:phyto_glow/classes/roboflow_inference_result.dart';
-import 'package:phyto_glow/classes/roboflow_prediction.dart';
+import 'package:phyto_glow/classes/roboflow/roboflow_inference_result.dart';
+import 'package:phyto_glow/classes/roboflow/roboflow_prediction.dart';
 import 'package:phyto_glow/functions/files/download_bytes.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
 
@@ -48,18 +48,21 @@ class _ResultPageState extends State<ResultPage> {
         ? imageWidth / imageHeight
         : 4 / 3;
 
-    return Scaffold(
-      appBar: getAppBar('ผลการวิเคราะห์'),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+    return Title(
+      title: 'Phyto Glow',
+      color: const Color(0xFF3F51B5),
+      child: Scaffold(
+        appBar: getAppBar(context, 'ผลการวิเคราะห์'),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: _pageMaxWidth),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     _SectionCard(
                       child: Row(
                         children: [
@@ -236,11 +239,12 @@ class _ResultPageState extends State<ResultPage> {
                         ],
                       ),
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

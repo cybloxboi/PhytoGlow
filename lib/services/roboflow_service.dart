@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
-import 'package:phyto_glow/classes/roboflow_inference_result.dart';
+import 'package:phyto_glow/classes/roboflow/roboflow_inference_result.dart';
 import 'package:phyto_glow/config/roboflow_config.dart';
 
 class RoboflowService {

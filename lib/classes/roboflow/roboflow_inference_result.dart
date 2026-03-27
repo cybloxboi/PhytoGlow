@@ -1,4 +1,4 @@
-import 'package:phyto_glow/classes/roboflow_prediction.dart';
+import 'package:phyto_glow/classes/roboflow/roboflow_prediction.dart';
 
 class RoboflowInferenceResult {
   final List<RoboflowPrediction> predictions;

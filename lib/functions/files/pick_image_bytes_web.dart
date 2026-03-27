@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:typed_data';
 
-import 'package:phyto_glow/classes/picked_image_data.dart';
+import 'package:phyto_glow/classes/data/picked_image_data.dart';
 
 Future<PickedImageData?> pickImageBytes() async {
   final input = html.FileUploadInputElement()

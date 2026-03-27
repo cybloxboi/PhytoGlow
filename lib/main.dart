@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phyto_glow/classes/data/result_page_data.dart';
+import 'package:phyto_glow/functions/ui/app_bar.dart';
+import 'package:phyto_glow/pages/fluorescent_detection_page.dart';
 import 'package:phyto_glow/pages/home_page.dart';
+import 'package:phyto_glow/pages/result_page.dart';
+import 'package:phyto_glow/pages/white_blood_cell_analysis_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  usePathUrlStrategy();
   runApp(const PhytoGlow());
 }
 
@@ -16,6 +24,70 @@ class PhytoGlow extends StatelessWidget {
   static const Color _secondaryColor = Color(0xFF00BFA5);
   static const Color _tertiaryColor = Color(0xFF8F4700);
   static const Color _neutralColor = Color(0xFF77767E);
+  static final GoRouter _router = _buildRouter();
+
+  static GoRouter _buildRouter() {
+    return GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          name: 'home',
+          builder: (context, state) => const HomePage(),
+          routes: [
+            GoRoute(
+              path: '/fluorescent',
+              name: 'fluorescent',
+              builder: (context, state) => const FluorescentDetectionPage(),
+              routes: [
+                GoRoute(
+                  path: 'result',
+                  name: 'fluorescent-result',
+                  builder: (context, state) {
+                    final data = state.extra;
+                    if (data is! ResultPageData) {
+                      return const _MissingRouteDataPage();
+                    }
+
+                    return ResultPage(
+                      imageBytes: data.imageBytes,
+                      imageName: data.imageName,
+                      result: data.result,
+                    );
+                  },
+                ),
+              ],
+            ),
+            GoRoute(
+              path: '/wbc',
+              name: 'wbc',
+              builder: (context, state) => const WhiteBloodCellAnalysisPage(),
+              routes: [
+                GoRoute(
+                  path: 'result',
+                  name: 'wbc-result',
+                  builder: (context, state) {
+                    final data = state.extra;
+                    if (data is! ResultPageData) {
+                      return const _MissingRouteDataPage();
+                    }
+
+                    return ResultPage(
+                      imageBytes: data.imageBytes,
+                      imageName: data.imageName,
+                      result: data.result,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+
+      errorBuilder: (context, state) => const _MissingRouteDataPage(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +111,7 @@ class PhytoGlow extends StatelessWidget {
       baseTheme.primaryTextTheme,
     );
 
-    return MaterialApp(
+    return MaterialApp.router(
       locale: const Locale('th'),
       supportedLocales: const [Locale('th'), Locale('en')],
       localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
@@ -47,6 +119,7 @@ class PhytoGlow extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      routerConfig: _router,
       theme: baseTheme.copyWith(
         colorScheme: lightScheme,
         scaffoldBackgroundColor: const Color(0xFFF6F7FB),
@@ -67,7 +140,6 @@ class PhytoGlow extends StatelessWidget {
           notoSansThaiFamily,
         ),
       ),
-      home: HomePage(),
     );
   }
 
@@ -93,6 +165,31 @@ class PhytoGlow extends StatelessWidget {
       labelLarge: withFallback(textTheme.labelLarge),
       labelMedium: withFallback(textTheme.labelMedium),
       labelSmall: withFallback(textTheme.labelSmall),
+    );
+  }
+}
+
+class _MissingRouteDataPage extends StatelessWidget {
+  const _MissingRouteDataPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Title(
+      title: 'Phyto Glow',
+      color: const Color(0xFF3F51B5),
+      child: Scaffold(
+        appBar: getAppBar(context, 'Phyto Glow'),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              '404 Not Found',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
