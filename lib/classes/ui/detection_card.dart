@@ -56,7 +56,7 @@ class DetectionCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Text(description),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(

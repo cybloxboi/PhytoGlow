@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phyto_glow/classes/data/result_page_data.dart';
+import 'package:phyto_glow/classes/ui/help_item.dart';
 import 'package:phyto_glow/functions/files/pick_image_bytes.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
 import 'package:phyto_glow/functions/ui/upload_image/build_empty_state.dart';
@@ -9,6 +10,8 @@ import 'package:phyto_glow/functions/ui/upload_image/build_selected_image_card.d
 import 'package:phyto_glow/services/roboflow_service.dart';
 
 import '../classes/exception/image_selection_exception.dart';
+import '../classes/exception/roboflow_exception.dart';
+import '../classes/ui/show_upload_help_bottom_sheet.dart';
 
 class WhiteBloodCellAnalysisPage extends StatefulWidget {
   const WhiteBloodCellAnalysisPage({super.key});
@@ -28,6 +31,32 @@ class _WhiteBloodCellAnalysisPageState
       (_previewMaxHeight * _previewAspectRatio) + (_cardHorizontalPadding * 2);
 
   final RoboflowService _roboflowService = RoboflowService();
+  final List<HelpItem> helpItems = [
+    HelpItem(
+      icon: Icons.center_focus_strong_rounded,
+      title: 'โฟกัสภาพให้คมชัด',
+      description:
+          'หลีกเลี่ยงภาพเบลอ สั่น หรือหลุดโฟกัส เพื่อให้โมเดลแยกวัตถุได้ง่ายขึ้น',
+    ),
+    HelpItem(
+      icon: Icons.wb_sunny_outlined,
+      title: 'แสงต้องสม่ำเสมอ',
+      description:
+          'ใช้ภาพที่สว่างพอ ไม่มีเงามืดจัดหรือแสงสะท้อนแรงเกินไปบนสไลด์',
+    ),
+    HelpItem(
+      icon: Icons.crop_free_rounded,
+      title: 'ให้บริเวณตัวอย่างอยู่กลางภาพ',
+      description:
+          'อย่าครอปชิดเกินไป และพยายามให้พื้นที่ที่ต้องการวิเคราะห์อยู่ในเฟรมอย่างครบถ้วน',
+    ),
+    HelpItem(
+      icon: Icons.image_not_supported_outlined,
+      title: 'หลีกเลี่ยงภาพที่มีสิ่งรบกวน',
+      description:
+          'เช่น ตัวหนังสือทับภาพ กราฟิก หรือพื้นหลังที่ไม่เกี่ยวข้องจำนวนมาก',
+    ),
+  ];
 
   Uint8List? _selectedImageBytes;
   String? _selectedImageName;
@@ -87,7 +116,7 @@ class _WhiteBloodCellAnalysisPageState
 
       context.goNamed(
         'wbc-result',
-        extra: ResultPageData(
+        extra: ResultPageData.wbc(
           imageBytes: imageBytes,
           imageName: _selectedImageName ?? 'รูปภาพที่อัปโหลด',
           result: result,
@@ -122,7 +151,26 @@ class _WhiteBloodCellAnalysisPageState
       title: 'Phyto Glow',
       color: const Color(0xFF3F51B5),
       child: Scaffold(
-        appBar: getAppBar(context, 'White Blood Cell Analysis'),
+        appBar: getAppBar(
+          context,
+          'White Blood Cell Analysis',
+          actions: [
+            IconButton(
+              onPressed: () {
+                showUploadHelpBottomSheet(
+                  context,
+                  description:
+                      'เพื่อให้ระบบวิเคราะห์เม็ดเลือดขาวได้แม่นยำขึ้น แนะนำให้เลือกรูปที่มีคุณสมบัติตามนี้',
+                  helpItems: helpItems,
+                  exampleImageUrl:
+                      'https://i0.wp.com/www.pathologystudent.com/wp-content/uploads/2009/04/leukocytes.jpg?w=500&ssl=1',
+                  exampleImageDescription: 'ขอบคุณภาพจาก Pathology Student',
+                );
+              },
+              icon: const Icon(Icons.help_outline_rounded),
+            ),
+          ],
+        ),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(20),

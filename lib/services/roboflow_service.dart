@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:phyto_glow/classes/roboflow/roboflow_inference_result.dart';
 import 'package:phyto_glow/config/roboflow_config.dart';
 
+import '../classes/exception/roboflow_exception.dart';
+
 class RoboflowService {
   static const String _apiUrl = RoboflowConfig.apiUrl;
   static const String _apiKey = RoboflowConfig.apiKey;
@@ -49,13 +51,4 @@ class RoboflowService {
 
     return RoboflowInferenceResult.fromJson(decoded);
   }
-}
-
-class RoboflowException implements Exception {
-  final String message;
-
-  const RoboflowException(this.message);
-
-  @override
-  String toString() => message;
 }

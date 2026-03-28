@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-AppBar getAppBar(BuildContext context, String title) {
+AppBar getAppBar(BuildContext context, String title, {List<Widget>? actions}) {
   final navigator = Navigator.of(context);
-  final state = GoRouterState.of(context);
-  final isHome = state.name == 'home';
+  final state = _maybeGoRouterState(context);
+  final isHome = state?.name == 'home';
   final shouldShowBackButton = navigator.canPop() || !isHome;
 
   return AppBar(
@@ -22,6 +22,15 @@ AppBar getAppBar(BuildContext context, String title) {
           )
         : null,
     title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+    actions: actions,
     elevation: 5,
   );
+}
+
+GoRouterState? _maybeGoRouterState(BuildContext context) {
+  try {
+    return GoRouterState.of(context);
+  } catch (_) {
+    return null;
+  }
 }

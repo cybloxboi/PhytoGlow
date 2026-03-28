@@ -51,11 +51,7 @@ class PhytoGlow extends StatelessWidget {
                       return const MissingRouteDataPage();
                     }
 
-                    return ResultPage(
-                      imageBytes: data.imageBytes,
-                      imageName: data.imageName,
-                      result: data.result,
-                    );
+                    return ResultPage(data: data);
                   },
                 ),
               ],
@@ -75,11 +71,7 @@ class PhytoGlow extends StatelessWidget {
                       return const MissingRouteDataPage();
                     }
 
-                    return ResultPage(
-                      imageBytes: data.imageBytes,
-                      imageName: data.imageName,
-                      result: data.result,
-                    );
+                    return ResultPage(data: data);
                   },
                 ),
               ],

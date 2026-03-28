@@ -9,7 +9,7 @@ class MissingRouteDataPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final state = GoRouterState.of(context);
+    final routeName = _resolveRouteName(context);
 
     return Title(
       title: 'Phyto Glow',
@@ -36,7 +36,7 @@ class MissingRouteDataPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'ดูเหมือนว่าคุณพยายามเปิดหน้า ${state.name} แต่ว่าไม่มีข้อมูลในการแสดงผล ทำให้ไม่สามารถแสดงข้อมูลในหน้านี้ได้',
+                        'ดูเหมือนว่าคุณพยายามเปิดหน้า $routeName แต่ว่าไม่มีข้อมูลในการแสดงผล ทำให้ไม่สามารถแสดงข้อมูลในหน้านี้ได้',
                         style: textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 20),
@@ -56,5 +56,13 @@ class MissingRouteDataPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _resolveRouteName(BuildContext context) {
+    try {
+      return GoRouterState.of(context).name ?? 'ที่ไม่ทราบชื่อ';
+    } catch (_) {
+      return 'ที่ไม่ทราบชื่อ';
+    }
   }
 }

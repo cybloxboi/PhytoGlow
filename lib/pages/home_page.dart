@@ -22,13 +22,15 @@ class _HomePageState extends State<HomePage>
   final List<DetectionItem> detectionItems = [
     DetectionItem(
       title: 'Fluorescent Detection',
-      description: 'Description',
+      description:
+          'ตรวจจับสัญญาณเรืองแสงจากภาพตัวอย่าง เพื่อช่วยประเมินปฏิกิริยา Fluorescent เบื้องต้น',
       buttonText: 'Start Detection',
       icon: Icons.wb_sunny_outlined,
     ),
     DetectionItem(
       title: 'White Blood Cell Analysis',
-      description: 'Description',
+      description:
+          'อัปโหลดภาพเซลล์เพื่อตรวจหาเม็ดเลือดขาวและสรุปผลการวิเคราะห์จากโมเดล AI',
       buttonText: 'Start Analysis',
       icon: Icons.science_outlined,
     ),
@@ -102,7 +104,11 @@ class _HomePageState extends State<HomePage>
       title: 'Phyto Glow',
       color: const Color(0xFF3F51B5),
       child: Scaffold(
-        appBar: getAppBar(context, 'Phyto Glow'),
+        appBar: getAppBar(
+          context,
+          'Phyto Glow',
+          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
+        ),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(16),

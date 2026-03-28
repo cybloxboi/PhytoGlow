@@ -4,22 +4,16 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:phyto_glow/classes/roboflow/roboflow_inference_result.dart';
+import 'package:phyto_glow/classes/data/result_page_data.dart';
+import 'package:phyto_glow/classes/models/luminol_result.dart';
 import 'package:phyto_glow/classes/roboflow/roboflow_prediction.dart';
 import 'package:phyto_glow/functions/files/download_bytes.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
 
 class ResultPage extends StatefulWidget {
-  const ResultPage({
-    super.key,
-    required this.imageBytes,
-    required this.imageName,
-    required this.result,
-  });
+  const ResultPage({super.key, required this.data});
 
-  final Uint8List imageBytes;
-  final String imageName;
-  final RoboflowInferenceResult result;
+  final ResultPageData data;
 
   @override
   State<ResultPage> createState() => _ResultPageState();
@@ -34,14 +28,20 @@ class _ResultPageState extends State<ResultPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final resultType = widget.data.analysisType;
+    final wbcResult = widget.data.wbcResult;
+    final fluorescentResult = widget.data.fluorescentResult;
     final wbcPredictions =
-        widget.result.predictions.where(_isWbcPrediction).toList()
+        (wbcResult?.predictions ?? const <RoboflowPrediction>[])
+            .where(_isWbcPrediction)
+            .toList()
           ..sort((a, b) => b.confidence.compareTo(a.confidence));
     final topPrediction = wbcPredictions.isEmpty ? null : wbcPredictions.first;
-    final imageWidth = widget.result.imageWidth?.toDouble();
-    final imageHeight = widget.result.imageHeight?.toDouble();
+    final imageWidth = wbcResult?.imageWidth?.toDouble();
+    final imageHeight = wbcResult?.imageHeight?.toDouble();
     final aspectRatio =
-        imageWidth != null &&
+        resultType == ResultAnalysisType.wbc &&
+            imageWidth != null &&
             imageHeight != null &&
             imageWidth > 0 &&
             imageHeight > 0
@@ -81,9 +81,9 @@ class _ResultPageState extends State<ResultPage> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'White Blood Cell Analysis',
+                                  _buildAnalysisLabel(resultType),
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.onSurface
                                         .withValues(alpha: 0.72),
@@ -114,20 +114,23 @@ class _ResultPageState extends State<ResultPage> {
                                         fit: StackFit.expand,
                                         children: [
                                           Image.memory(
-                                            widget.imageBytes,
+                                            _displayImageBytes,
                                             fit: BoxFit.contain,
                                           ),
-                                          Positioned.fill(
-                                            child: CustomPaint(
-                                              painter: _BoundingBoxPainter(
-                                                predictions: wbcPredictions,
-                                                imageWidth: imageWidth,
-                                                imageHeight: imageHeight,
-                                                color:
-                                                    theme.colorScheme.secondary,
+                                          if (resultType ==
+                                              ResultAnalysisType.wbc)
+                                            Positioned.fill(
+                                              child: CustomPaint(
+                                                painter: _BoundingBoxPainter(
+                                                  predictions: wbcPredictions,
+                                                  imageWidth: imageWidth,
+                                                  imageHeight: imageHeight,
+                                                  color: theme
+                                                      .colorScheme
+                                                      .secondary,
+                                                ),
                                               ),
                                             ),
-                                          ),
                                         ],
                                       ),
                                     ),
@@ -137,16 +140,18 @@ class _ResultPageState extends State<ResultPage> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              widget.imageName,
+                              widget.data.imageName,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              wbcPredictions.isEmpty
-                                  ? 'ไม่พบ เม็ดเลือดขาว จากผลลัพธ์ Roboflow'
-                                  : 'แสดงกรอบเฉพาะวัตถุที่เป็น เม็ดเลือดขาว จาก Roboflow',
+                              _buildImageDescription(
+                                resultType,
+                                wbcPredictions,
+                                fluorescentResult,
+                              ),
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurface.withValues(
                                   alpha: 0.72,
@@ -187,7 +192,7 @@ class _ResultPageState extends State<ResultPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'ภาพรวมผลลัพธ์เม็ดเลือดขาวที่พบ',
+                                _buildMetricSectionTitle(resultType),
                                 style: theme.textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -196,18 +201,15 @@ class _ResultPageState extends State<ResultPage> {
                               Wrap(
                                 spacing: 12,
                                 runSpacing: 12,
-                                children: [
-                                  _MetricTile(
-                                    label: 'จำนวนเม็ดเลือดขาวที่ตรวจพบ',
-                                    value: '${wbcPredictions.length}',
-                                  ),
-                                  _MetricTile(
-                                    label: 'ความมั่นใจสูงสุด',
-                                    value: topPrediction == null
-                                        ? '-'
-                                        : '${(topPrediction.confidence * 100).toStringAsFixed(1)}%',
-                                  ),
-                                ],
+                                children:
+                                    resultType == ResultAnalysisType.fluorescent
+                                    ? _buildFluorescentMetricTiles(
+                                        fluorescentResult,
+                                      )
+                                    : _buildWbcMetricTiles(
+                                        wbcPredictions.length,
+                                        topPrediction,
+                                      ),
                               ),
                             ],
                           ),
@@ -219,13 +221,18 @@ class _ResultPageState extends State<ResultPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'รายละเอียดเม็ดเลือดขาว',
+                              _buildDetailSectionTitle(resultType),
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(height: 16),
-                            if (wbcPredictions.isEmpty)
+                            if (resultType == ResultAnalysisType.fluorescent)
+                              ..._buildFluorescentDetails(
+                                context,
+                                fluorescentResult,
+                              )
+                            else if (wbcPredictions.isEmpty)
                               Text(
                                 'ไม่มี prediction ที่ผ่านเงื่อนไข เม็ดเลือดขาว',
                                 style: theme.textTheme.bodyMedium,
@@ -275,7 +282,7 @@ class _ResultPageState extends State<ResultPage> {
 
       await downloadBytes(
         bytes: bytes,
-        fileName: _buildDownloadFileName(widget.imageName),
+        fileName: _buildDownloadFileName(widget.data),
         mimeType: 'image/png',
       );
 
@@ -303,14 +310,20 @@ class _ResultPageState extends State<ResultPage> {
     }
   }
 
-  String _buildDownloadFileName(String sourceName) {
+  String _buildDownloadFileName(ResultPageData data) {
+    final sourceName = data.imageName;
     final normalized = sourceName
         .replaceAll(RegExp(r'\.[^.]+$'), '')
         .replaceAll(RegExp(r'[^a-zA-Z0-9_-]+'), '_')
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
-    final baseName = normalized.isEmpty ? 'wbc_result' : normalized;
-    return '${baseName}_wbc_result.png';
+    final baseName = normalized.isEmpty
+        ? data.isFluorescent
+              ? 'fluorescent_result'
+              : 'wbc_result'
+        : normalized;
+    final suffix = data.isFluorescent ? 'fluorescent_result' : 'wbc_result';
+    return '${baseName}_$suffix.png';
   }
 
   bool _isWbcPrediction(RoboflowPrediction prediction) {
@@ -321,6 +334,174 @@ class _ResultPageState extends State<ResultPage> {
         normalized.contains('white_blood_cell') ||
         normalized.contains('white-blood-cell') ||
         normalized.contains('leukocyte');
+  }
+
+  List<Widget> _buildWbcMetricTiles(
+    int wbcCount,
+    RoboflowPrediction? topPrediction,
+  ) {
+    return [
+      _MetricTile(label: 'จำนวนเม็ดเลือดขาวที่ตรวจพบ', value: '$wbcCount'),
+      _MetricTile(
+        label: 'ความมั่นใจสูงสุด',
+        value: topPrediction == null
+            ? '-'
+            : '${(topPrediction.confidence * 100).toStringAsFixed(1)}%',
+      ),
+    ];
+  }
+
+  List<Widget> _buildFluorescentMetricTiles(LuminolResult? result) {
+    final intensity = result?.intensityPercent ?? 0;
+    return [
+      _MetricTile(
+        label: 'ความเข้มสัญญาณ Fluorescent',
+        value: '${intensity.toStringAsFixed(2)}%',
+      ),
+      _MetricTile(
+        label: 'ระดับสัญญาณ',
+        value: _fluorescentLevelLabel(intensity),
+      ),
+    ];
+  }
+
+  List<Widget> _buildFluorescentDetails(
+    BuildContext context,
+    LuminolResult? result,
+  ) {
+    final theme = Theme.of(context);
+    final intensity = result?.intensityPercent ?? 0;
+    return [
+      Text(
+        _fluorescentSummary(intensity),
+        style: theme.textTheme.bodyLarge?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      const SizedBox(height: 6),
+      const Divider(),
+      const SizedBox(height: 6),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.help_outline_rounded, color: theme.colorScheme.secondary),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              'ภาพผลลัพธ์ด้านบนคือบริเวณที่ OpenCV ตรวจพบช่วงสีของสัญญาณเรืองแสงและทำ threshold ให้เห็นชัดขึ้น',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error, color: Colors.red),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              'ข้อมูลนี้ใช้สำหรับการเปรียบเทียบความเข้มในเบื้องต้นเท่านั้น ไม่สามารถใช้ทดแทนเครื่องมือทางวิทยาศาสตร์ได้ ควรให้ผู้เชี่ยวชาญเป็นผู้ประเมิน และพิจารณาร่วมกับปัจจัยในการถ่ายภาพ เช่น แสง การตั้งค่า white balance และระยะห่างจากตัวอย่าง',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  String _buildAnalysisLabel(ResultAnalysisType type) {
+    switch (type) {
+      case ResultAnalysisType.fluorescent:
+        return 'Fluorescent Detection';
+      case ResultAnalysisType.wbc:
+        return 'White Blood Cell Analysis';
+    }
+  }
+
+  String _buildMetricSectionTitle(ResultAnalysisType type) {
+    switch (type) {
+      case ResultAnalysisType.fluorescent:
+        return 'ภาพรวมผลการตรวจจับสัญญาณ Fluorescent';
+      case ResultAnalysisType.wbc:
+        return 'ภาพรวมผลลัพธ์เม็ดเลือดขาวที่พบ';
+    }
+  }
+
+  String _buildDetailSectionTitle(ResultAnalysisType type) {
+    switch (type) {
+      case ResultAnalysisType.fluorescent:
+        return 'รายละเอียดการวิเคราะห์ Fluorescent';
+      case ResultAnalysisType.wbc:
+        return 'รายละเอียดเม็ดเลือดขาว';
+    }
+  }
+
+  String _buildImageDescription(
+    ResultAnalysisType type,
+    List<RoboflowPrediction> wbcPredictions,
+    LuminolResult? fluorescentResult,
+  ) {
+    switch (type) {
+      case ResultAnalysisType.fluorescent:
+        final intensity = fluorescentResult?.intensityPercent ?? 0;
+        return 'แสดงภาพที่ผ่านการ threshold โดย OpenCV เพื่อเน้นบริเวณสัญญาณเรืองแสง ความเข้มรวม ${intensity.toStringAsFixed(2)}%';
+      case ResultAnalysisType.wbc:
+        return wbcPredictions.isEmpty
+            ? 'ไม่พบเม็ดเลือดขาว จากผลลัพธ์ Roboflow'
+            : 'แสดงกรอบเฉพาะวัตถุที่เป็นเม็ดเลือดขาว จาก Roboflow';
+    }
+  }
+
+  String _fluorescentLevelLabel(double intensity) {
+    // if (intensity >= 8) {
+    //   return 'สูง';
+    // }
+    //
+    // if (intensity >= 3) {
+    //   return 'ปานกลาง';
+    // }
+    //
+    // if (intensity > 0) {
+    //   return 'ต่ำ';
+    // }
+
+    // return 'ไม่พบเด่นชัด';
+
+    return 'ยังวัดผลไม่ได้ เพราะยังไม่ได้คิด :3';
+  }
+
+  String _fluorescentSummary(double intensity) {
+    // if (intensity >= 8) {
+    //   return 'ตรวจพบสัญญาณ Fluorescent ค่อนข้างชัดเจนในบริเวณที่ระบบคัดกรองไว้';
+    // }
+    //
+    // if (intensity >= 3) {
+    //   return 'ตรวจพบสัญญาณ Fluorescent ระดับปานกลาง อาจต้องพิจารณาภาพต้นฉบับร่วมด้วย';
+    // }
+    //
+    // if (intensity > 0) {
+    //   return 'ตรวจพบสัญญาณ Fluorescent เล็กน้อย ซึ่งอาจได้รับผลจากแสงหรือสภาพภาพ';
+    // }
+
+    // return 'ยังไม่พบสัญญาณ Fluorescent ที่เด่นชัดจากเกณฑ์ threshold ปัจจุบัน';
+
+    return 'อาจจะยังนะคะ คุณน้า';
+  }
+
+  Uint8List get _displayImageBytes {
+    if (widget.data.isFluorescent) {
+      return widget.data.fluorescentResult?.thresholdedBytes ??
+          widget.data.imageBytes;
+    }
+
+    return widget.data.imageBytes;
   }
 }
 
