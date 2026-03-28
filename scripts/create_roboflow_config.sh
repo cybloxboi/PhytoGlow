@@ -10,3 +10,9 @@ class RoboflowConfig {
   static const String modelId = '${ROBOFLOW_MODEL_ID:-bccd-evlbr/1}';
 }
 CONFIG
+
+cat > lib/config/fluorescent_api_config.dart <<CONFIG
+class FluorescentApiConfig {
+  static const String endpoint = '${FLUORESCENT_API_ENDPOINT:-}';
+}
+CONFIG

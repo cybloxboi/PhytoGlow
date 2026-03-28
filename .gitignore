@@ -46,7 +46,6 @@ app.*.map.json
 
 /lib/config/roboflow_config.dart
 /lib/config/fluorescent_api_config.dart
-/firebase.json
 
 # iOS/XCode
 ios/Pods/
