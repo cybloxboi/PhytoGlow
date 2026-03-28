@@ -4,7 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:phyto_glow/classes/data/result_page_data.dart';
 import 'package:phyto_glow/functions/files/pick_image_bytes.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
+import 'package:phyto_glow/functions/ui/upload_image/build_empty_state.dart';
+import 'package:phyto_glow/functions/ui/upload_image/build_selected_image_card.dart';
 import 'package:phyto_glow/services/roboflow_service.dart';
+
+import '../classes/exception/image_selection_exception.dart';
 
 class WhiteBloodCellAnalysisPage extends StatefulWidget {
   const WhiteBloodCellAnalysisPage({super.key});
@@ -30,21 +34,12 @@ class _WhiteBloodCellAnalysisPageState
   bool _isPickingImage = false;
   bool _isAnalyzing = false;
 
-  bool get _usesIosWebPickerWorkaround =>
-      kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-
   Future<void> _pickImage() async {
     if (_isPickingImage) return;
 
-    final showPickingLoader = !_usesIosWebPickerWorkaround;
-
-    if (showPickingLoader) {
-      setState(() {
-        _isPickingImage = true;
-      });
-    } else {
+    setState(() {
       _isPickingImage = true;
-    }
+    });
 
     try {
       final pickedImage = await pickImageBytes();
@@ -54,7 +49,7 @@ class _WhiteBloodCellAnalysisPageState
       if (!mounted) return;
 
       if (bytes.isEmpty) {
-        throw const _ImageSelectionException(
+        throw const ImageSelectionException(
           'ไม่พบข้อมูลรูปภาพจากไฟล์ที่เลือก กรุณาลองเลือกรูปใหม่',
         );
       }
@@ -63,19 +58,17 @@ class _WhiteBloodCellAnalysisPageState
         _selectedImageBytes = bytes;
         _selectedImageName = pickedImage.name;
       });
-    } on _ImageSelectionException catch (error) {
+    } on ImageSelectionException catch (error) {
       if (!mounted) return;
       _showError(error.message);
     } catch (error) {
       if (!mounted) return;
       _showError('ไม่สามารถเลือกรูปภาพได้ กรุณาลองใหม่อีกครั้ง\n$error');
     } finally {
-      if (showPickingLoader && mounted) {
+      if (mounted) {
         setState(() {
           _isPickingImage = false;
         });
-      } else {
-        _isPickingImage = false;
       }
     }
   }
@@ -182,8 +175,24 @@ class _WhiteBloodCellAnalysisPageState
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 220),
                         child: _selectedImageBytes == null
-                            ? _buildEmptyState(theme)
-                            : _buildSelectedImageCard(theme),
+                            ? buildEmptyState(theme, _cardMaxWidth)
+                            : buildSelectedImageCard(
+                                theme,
+                                cardMaxWidth: _cardMaxWidth,
+                                previewMaxHeight: _previewMaxHeight,
+                                previewAspectRatio: _previewAspectRatio,
+                                selectedImageBytes: _selectedImageBytes!,
+                                selectedImageName: _selectedImageName,
+                                description:
+                                    'พร้อมส่งไปวิเคราะห์ด้วยโมเดล Roboflow',
+                                isProcessing: _isAnalyzing,
+                                idleActionLabel: 'เริ่มวิเคราะห์',
+                                processingActionLabel: 'กำลังวิเคราะห์...',
+                                onActionPressed: _isAnalyzing
+                                    ? null
+                                    : _analyzeImage,
+                                imageFit: BoxFit.cover,
+                              ),
                       ),
                     ],
                   ),
@@ -195,128 +204,4 @@ class _WhiteBloodCellAnalysisPageState
       ),
     );
   }
-
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _cardMaxWidth),
-        child: Container(
-          key: const ValueKey<String>('empty-state'),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                Icons.image_outlined,
-                size: 52,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'ยังไม่มีรูปภาพที่เลือก',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'กดปุ่มอัปโหลดด้านบนเพื่อเลือกรูปจากอุปกรณ์ของคุณ',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSelectedImageCard(ThemeData theme) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _cardMaxWidth),
-        child: Container(
-          key: const ValueKey('selected-image'),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.shadow.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxHeight: _previewMaxHeight,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: _previewAspectRatio,
-                    child: Image.memory(
-                      _selectedImageBytes!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _selectedImageName ?? 'รูปภาพที่อัปโหลด',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'พร้อมส่งไปวิเคราะห์ด้วยโมเดล Roboflow',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: FilledButton.icon(
-                    onPressed: _isAnalyzing ? null : _analyzeImage,
-                    label: Text(
-                      _isAnalyzing ? 'กำลังวิเคราะห์...' : 'เริ่มวิเคราะห์',
-                    ),
-                    icon: _isAnalyzing
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.navigate_next_rounded),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ImageSelectionException implements Exception {
-  const _ImageSelectionException(this.message);
-
-  final String message;
 }

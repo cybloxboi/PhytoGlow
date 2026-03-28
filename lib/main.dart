@@ -165,6 +165,17 @@ class PhytoGlow extends StatelessWidget {
     return baseTheme.copyWith(
       brightness: brightness,
       colorScheme: scheme,
+      filledButtonTheme: FilledButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (!isDark) {
+              return null;
+            }
+
+            return Colors.white;
+          }),
+        ),
+      ),
       scaffoldBackgroundColor: isDark
           ? const Color(0xFF0E1118)
           : const Color(0xFFF6F7FB),
