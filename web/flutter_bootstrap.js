@@ -23,16 +23,26 @@ function createInAppBanner() {
   banner.style.backdropFilter = 'blur(12px)';
   banner.style.fontFamily =
     'Manrope, Kanit, "Noto Sans Thai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
   banner.innerHTML = `
-    <div style="font-size:14px;font-weight:800;color:#8F4700;">In-app browser detected</div>
+    <div style="font-size:14px;font-weight:800;color:#8F4700;">
+      ตรวจพบเบราว์เซอร์ภายในแอป
+    </div>
     <div style="margin-top:6px;font-size:13px;line-height:1.5;color:#5f5b66;">
-      If the page looks incomplete, open this link in Chrome, Safari, or your default browser.
+      หากหน้านี้แสดงผลไม่สมบูรณ์ กรุณาเปิดลิงก์นี้ใน Chrome, Safari หรือเบราว์เซอร์หลักของคุณ
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-      <button id="open-external-button" type="button" style="appearance:none;border:0;border-radius:999px;padding:10px 14px;background:#3F51B5;color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;">Open in browser</button>
-      <button id="copy-link-button" type="button" style="appearance:none;border:0;border-radius:999px;padding:10px 14px;background:rgba(63, 81, 181, 0.1);color:#3F51B5;font:inherit;font-size:13px;font-weight:700;cursor:pointer;">Copy link</button>
+      <button id="open-external-button" type="button"
+        style="appearance:none;border:0;border-radius:999px;padding:10px 14px;background:#3F51B5;color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+        เปิดในเบราว์เซอร์
+      </button>
+      <button id="copy-link-button" type="button"
+        style="appearance:none;border:0;border-radius:999px;padding:10px 14px;background:rgba(63, 81, 181, 0.1);color:#3F51B5;font:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+        คัดลอกลิงก์
+      </button>
     </div>
   `;
+
   document.body.appendChild(banner);
 
   const openExternalButton = document.getElementById('open-external-button');
@@ -48,12 +58,12 @@ function createInAppBanner() {
     copyLinkButton.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(window.location.href);
-        copyLinkButton.textContent = 'Copied';
+        copyLinkButton.textContent = 'คัดลอกแล้ว';
         window.setTimeout(() => {
-          copyLinkButton.textContent = 'Copy link';
+          copyLinkButton.textContent = 'คัดลอกลิงก์';
         }, 1800);
       } catch (_) {
-        window.prompt('Copy this link', window.location.href);
+        window.prompt('คัดลอกลิงก์นี้', window.location.href);
       }
     });
   }
