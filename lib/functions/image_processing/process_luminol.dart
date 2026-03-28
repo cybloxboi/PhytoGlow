@@ -1,5 +1,6 @@
-import 'package:phyto_glow/classes/models/luminol_result.dart';
 import 'package:opencv_dart/opencv.dart' as cv;
+import 'package:phyto_glow/classes/models/luminol_result.dart';
+import 'package:phyto_glow/functions/image_processing/process_luminol_shared.dart';
 
 LuminolResult processLuminol(cv.Mat src) {
   final width = src.width;
@@ -18,15 +19,14 @@ LuminolResult processLuminol(cv.Mat src) {
   final countLum = cv.countNonZero(mask);
 
   if (countLum > 0) {
-    final areaRatio = countLum / totalPixels;
-
-    if (areaRatio >= 0.001) {
-      final vChannel = cv.extractChannel(hsv, 2);
-      final meanV = cv.mean(vChannel, mask: mask).val1;
-      intensityPercent = ((meanV / 255.0) * areaRatio) * 100;
-      intensityPercent = intensityPercent.clamp(0.0, 100.0);
-      vChannel.dispose();
-    }
+    final vChannel = cv.extractChannel(hsv, 2);
+    final meanV = cv.mean(vChannel, mask: mask).val1;
+    intensityPercent = computeLuminolIntensityPercent(
+      matchedPixels: countLum,
+      totalPixels: totalPixels,
+      meanValueNormalized: meanV / 255.0,
+    );
+    vChannel.dispose();
   }
 
   final (_, thresholdedBytes) = cv.imencode('.jpg', thresholded);

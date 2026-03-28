@@ -119,7 +119,9 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
   Future<void> _analyzeImage() async {
     final imageBytes = _selectedImageBytes;
 
-    if (_isAnalyzing || imageBytes == null) return;
+    if (_isAnalyzing || imageBytes == null) {
+      return;
+    }
 
     setState(() {
       _isAnalyzing = true;
@@ -127,7 +129,10 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
 
     try {
       final result = await analyzeFluorescent(imageBytes);
-      if (!mounted) return;
+
+      if (!mounted) {
+        return;
+      }
 
       context.goNamed(
         'fluorescent-result',
@@ -138,7 +143,10 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
         ),
       );
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
       _showError('ไม่สามารถวิเคราะห์ภาพ Fluorescent ได้\n$error');
     } finally {
       if (mounted) {
