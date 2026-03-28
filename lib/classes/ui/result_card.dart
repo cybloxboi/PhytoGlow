@@ -10,10 +10,11 @@ class ResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SizedBox(
       width: 300,
       child: Card(
-        color: Colors.white,
         elevation: 5,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -26,15 +27,15 @@ class ResultCard extends StatelessWidget {
                 Row(
                   children: [
                     Card(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.secondary.withAlpha(50),
-                      child: const Padding(
+                      color: theme.colorScheme.secondary.withValues(
+                        alpha: 0.12,
+                      ),
+                      child: Padding(
                         padding: EdgeInsets.all(4.0),
                         child: Icon(
                           Icons.check_circle_rounded,
                           size: 32,
-                          color: Colors.green,
+                          color: theme.colorScheme.secondary,
                         ),
                       ),
                     ),
@@ -45,12 +46,12 @@ class ResultCard extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   item.title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Text(item.type, style: Theme.of(context).textTheme.titleMedium),
+                Text(item.type, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -60,11 +61,10 @@ class ResultCard extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: item.confidence,
                           minHeight: 8,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
+                          backgroundColor:
+                              theme.colorScheme.surfaceContainerHighest,
                           valueColor: AlwaysStoppedAnimation(
-                            Theme.of(context).colorScheme.secondary,
+                            theme.colorScheme.secondary,
                           ),
                         ),
                       ),
@@ -72,9 +72,7 @@ class ResultCard extends StatelessWidget {
                     const SizedBox(width: 16),
                     Text(
                       '${(item.confidence * 100).toInt()}%',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
+                      style: TextStyle(color: theme.colorScheme.secondary),
                     ),
                   ],
                 ),

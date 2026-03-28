@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 
 AppBar getAppBar(BuildContext context, String title) {
   final navigator = Navigator.of(context);
-  final router = GoRouter.of(context);
-  final currentLocation = router.routeInformationProvider.value.uri.path;
-  final shouldShowBackButton = navigator.canPop() || currentLocation != '/';
+  final state = GoRouterState.of(context);
+  final isHome = state.name == 'home';
+  final shouldShowBackButton = navigator.canPop() || !isHome;
 
   return AppBar(
     leading: shouldShowBackButton
@@ -17,7 +17,7 @@ AppBar getAppBar(BuildContext context, String title) {
                 return;
               }
 
-              router.goNamed('home');
+              context.goNamed('home');
             },
           )
         : null,

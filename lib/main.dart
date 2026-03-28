@@ -4,7 +4,8 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phyto_glow/classes/data/result_page_data.dart';
-import 'package:phyto_glow/functions/ui/app_bar.dart';
+import 'package:phyto_glow/pages/error_handling/missing_route_data_page.dart';
+import 'package:phyto_glow/pages/error_handling/not_found_page.dart';
 import 'package:phyto_glow/pages/fluorescent_detection_page.dart';
 import 'package:phyto_glow/pages/home_page.dart';
 import 'package:phyto_glow/pages/result_page.dart';
@@ -45,8 +46,9 @@ class PhytoGlow extends StatelessWidget {
                   name: 'fluorescent-result',
                   builder: (context, state) {
                     final data = state.extra;
+
                     if (data is! ResultPageData) {
-                      return const _MissingRouteDataPage();
+                      return const MissingRouteDataPage();
                     }
 
                     return ResultPage(
@@ -68,8 +70,9 @@ class PhytoGlow extends StatelessWidget {
                   name: 'wbc-result',
                   builder: (context, state) {
                     final data = state.extra;
+
                     if (data is! ResultPageData) {
-                      return const _MissingRouteDataPage();
+                      return const MissingRouteDataPage();
                     }
 
                     return ResultPage(
@@ -86,30 +89,38 @@ class PhytoGlow extends StatelessWidget {
       ],
 
       errorBuilder: (context, state) =>
-          _NotFoundPage(attemptedPath: state.uri.path),
+          NotFoundPage(attemptedPath: state.uri.path),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final baseTheme = ThemeData();
-    final lightScheme =
-        ColorScheme.fromSeed(
-          seedColor: _seedColor,
-          brightness: Brightness.light,
-        ).copyWith(
-          primary: _primaryColor,
-          secondary: _secondaryColor,
-          tertiary: _tertiaryColor,
-          surface: Colors.white,
-          onSurface: const Color(0xFF1C1B1F),
-          outline: _neutralColor,
-          outlineVariant: _neutralColor.withValues(alpha: 0.35),
-        );
     final notoSansThaiFamily = GoogleFonts.notoSansThai().fontFamily!;
-    final manropeTextTheme = GoogleFonts.manropeTextTheme(baseTheme.textTheme);
-    final manropePrimaryTextTheme = GoogleFonts.manropeTextTheme(
-      baseTheme.primaryTextTheme,
+    final lightBaseTheme = ThemeData(
+      brightness: Brightness.light,
+      useMaterial3: true,
+    );
+    final darkBaseTheme = ThemeData(
+      brightness: Brightness.dark,
+      useMaterial3: true,
+    );
+    final lightTheme = _buildTheme(
+      baseTheme: lightBaseTheme,
+      brightness: Brightness.light,
+      textTheme: GoogleFonts.manropeTextTheme(lightBaseTheme.textTheme),
+      primaryTextTheme: GoogleFonts.manropeTextTheme(
+        lightBaseTheme.primaryTextTheme,
+      ),
+      fallbackFamily: notoSansThaiFamily,
+    );
+    final darkTheme = _buildTheme(
+      baseTheme: darkBaseTheme,
+      brightness: Brightness.dark,
+      textTheme: GoogleFonts.manropeTextTheme(darkBaseTheme.textTheme),
+      primaryTextTheme: GoogleFonts.manropeTextTheme(
+        darkBaseTheme.primaryTextTheme,
+      ),
+      fallbackFamily: notoSansThaiFamily,
     );
 
     return MaterialApp.router(
@@ -121,32 +132,78 @@ class PhytoGlow extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: _router,
-      theme: baseTheme.copyWith(
-        colorScheme: lightScheme,
-        scaffoldBackgroundColor: const Color(0xFFF6F7FB),
-        appBarTheme: AppBarTheme(
-          backgroundColor: lightScheme.surface,
-          foregroundColor: lightScheme.onSurface,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system,
+    );
+  }
+
+  ThemeData _buildTheme({
+    required ThemeData baseTheme,
+    required Brightness brightness,
+    required TextTheme textTheme,
+    required TextTheme primaryTextTheme,
+    required String fallbackFamily,
+  }) {
+    final isDark = brightness == Brightness.dark;
+    final scheme =
+        ColorScheme.fromSeed(
+          seedColor: _seedColor,
+          brightness: brightness,
+        ).copyWith(
+          primary: _primaryColor,
+          secondary: _secondaryColor,
+          tertiary: _tertiaryColor,
+          surface: isDark ? const Color(0xFF171A24) : Colors.white,
+          onSurface: isDark ? const Color(0xFFE8EAF2) : const Color(0xFF1C1B1F),
+          outline: isDark ? const Color(0xFF8B93A7) : _neutralColor,
+          outlineVariant: isDark
+              ? const Color(0xFF8B93A7).withValues(alpha: 0.32)
+              : _neutralColor.withValues(alpha: 0.35),
+        );
+
+    return baseTheme.copyWith(
+      brightness: brightness,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: isDark
+          ? const Color(0xFF0E1118)
+          : const Color(0xFFF6F7FB),
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardTheme: CardThemeData(
+        color: scheme.surface,
+        shadowColor: Colors.black.withValues(alpha: isDark ? 0.32 : 0.12),
+        surfaceTintColor: Colors.transparent,
+      ),
+      textTheme: _applyThaiFallback(
+        textTheme.apply(
+          bodyColor: scheme.onSurface,
+          displayColor: scheme.onSurface,
+          decorationColor: scheme.onSurface,
         ),
-        cardTheme: CardThemeData(
-          color: lightScheme.surface,
-          shadowColor: _neutralColor.withValues(alpha: 0.12),
-          surfaceTintColor: Colors.transparent,
+        fallbackFamily,
+      ),
+      primaryTextTheme: _applyThaiFallback(
+        primaryTextTheme.apply(
+          bodyColor: scheme.onPrimary,
+          displayColor: scheme.onPrimary,
+          decorationColor: scheme.onPrimary,
         ),
-        textTheme: _applyThaiFallback(manropeTextTheme, notoSansThaiFamily),
-        primaryTextTheme: _applyThaiFallback(
-          manropePrimaryTextTheme,
-          notoSansThaiFamily,
-        ),
+        fallbackFamily,
       ),
     );
   }
 
   TextTheme _applyThaiFallback(TextTheme textTheme, String fallbackFamily) {
     TextStyle? withFallback(TextStyle? style) {
-      if (style == null) return null;
+      if (style == null) {
+        return null;
+      }
+
       return style.copyWith(fontFamilyFallback: <String>[fallbackFamily]);
     }
 
@@ -166,103 +223,6 @@ class PhytoGlow extends StatelessWidget {
       labelLarge: withFallback(textTheme.labelLarge),
       labelMedium: withFallback(textTheme.labelMedium),
       labelSmall: withFallback(textTheme.labelSmall),
-    );
-  }
-}
-
-class _MissingRouteDataPage extends StatelessWidget {
-  const _MissingRouteDataPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Title(
-      title: 'Phyto Glow',
-      color: const Color(0xFF3F51B5),
-      child: Scaffold(
-        appBar: getAppBar(context, 'Phyto Glow'),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              '404 Not Found',
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NotFoundPage extends StatelessWidget {
-  const _NotFoundPage({required this.attemptedPath});
-
-  final String attemptedPath;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Title(
-      title: 'Phyto Glow',
-      color: const Color(0xFF3F51B5),
-      child: Scaffold(
-        appBar: getAppBar(context, 'Phyto Glow'),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ไม่พบหน้าที่ต้องการ',
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'ลิงก์ที่เปิดอยู่ไม่มีอยู่ในแอป หรืออาจถูกย้ายออกแล้ว',
-                        style: textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF6F7FB),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          attemptedPath,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: FilledButton.icon(
-                          onPressed: () => context.goNamed('home'),
-                          icon: const Icon(Icons.home_rounded),
-                          label: const Text('กลับหน้าแรก'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

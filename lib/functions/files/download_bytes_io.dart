@@ -22,6 +22,7 @@ Future<void> downloadBytes({
       'fileName': fileName,
       'mimeType': mimeType,
     });
+
     return;
   }
 

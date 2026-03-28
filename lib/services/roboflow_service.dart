@@ -42,6 +42,7 @@ class RoboflowService {
     }
 
     final decoded = jsonDecode(response.body);
+
     if (decoded is! Map<String, dynamic>) {
       throw const RoboflowException('Roboflow response is not a JSON object.');
     }

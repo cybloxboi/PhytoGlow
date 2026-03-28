@@ -20,6 +20,7 @@ class DetectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.2),
       end: Offset.zero,
@@ -33,7 +34,6 @@ class DetectionCard extends StatelessWidget {
           children: [
             Expanded(
               child: Card(
-                color: Colors.white,
                 elevation: 5,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -44,11 +44,16 @@ class DetectionCard extends StatelessWidget {
                         children: [
                           Text(
                             title,
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const Spacer(),
-                          Icon(icon, color: Colors.blueAccent, size: 40),
+                          Icon(
+                            icon,
+                            color: theme.colorScheme.primary,
+                            size: 40,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),

@@ -27,8 +27,14 @@ class RoboflowPrediction {
   }
 
   static double? _toDouble(dynamic value) {
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
+    if (value is num) {
+      return value.toDouble();
+    }
+
+    if (value is String) {
+      return double.tryParse(value);
+    }
+
     return null;
   }
 }

@@ -66,10 +66,10 @@ class _ResultPageState extends State<ResultPage> {
                       _SectionCard(
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.check_circle_rounded,
                               size: 50,
-                              color: Colors.green,
+                              color: theme.colorScheme.secondary,
                             ),
                             const SizedBox(width: 16),
                             Column(
