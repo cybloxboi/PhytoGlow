@@ -4,13 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:phyto_glow/classes/data/result_page_data.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
 
+import '../classes/exception/fluorescent_exception.dart';
 import '../classes/exception/image_selection_exception.dart';
 import '../classes/ui/help_item.dart';
 import '../classes/ui/show_upload_help_bottom_sheet.dart';
 import '../functions/files/pick_image_bytes.dart';
-import '../functions/image_processing/analyze_fluorescent.dart';
 import '../functions/ui/upload_image/build_empty_state.dart';
 import '../functions/ui/upload_image/build_selected_image_card.dart';
+import '../services/fluorescent_service.dart';
 
 class FluorescentDetectionPage extends StatefulWidget {
   const FluorescentDetectionPage({super.key});
@@ -32,6 +33,7 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
   String? _selectedImageName;
   bool _isPickingImage = false;
   bool _isAnalyzing = false;
+  final FluorescentService _fluorescentService = FluorescentService();
 
   final helpItems = [
     HelpItem(
@@ -128,7 +130,10 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
     });
 
     try {
-      final result = await analyzeFluorescent(imageBytes);
+      final result = await _fluorescentService.detectFluorescent(
+        imageBytes: imageBytes,
+        fileName: _selectedImageName ?? 'fluorescent_upload.jpg',
+      );
 
       if (!mounted) {
         return;
@@ -142,6 +147,12 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
           result: result,
         ),
       );
+    } on FluorescentException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      _showError(error.message);
     } catch (error) {
       if (!mounted) {
         return;
@@ -176,8 +187,7 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
                   description:
                       'ในอัปโหลดภาพตัวอย่างสำหรับการวิเคราะห์ Fluorescent Detection ควรถ่ายภาพภายใต้สภาวะที่เหมาะสม เพื่อลดสัญญาณรบกวนและเพิ่มความแม่นยำของผลลัพธ์',
                   helpItems: helpItems,
-                  exampleImageUrl:
-                      'https://www.scimath.org/images/uploads/upload2/luminol2.jpg',
+                  exampleImagePath: 'assets/images/luminol.jpg',
                   exampleImageDescription: 'ขอบคุณภาพจาก SciMath',
                 );
               },
@@ -203,7 +213,7 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'เมื่อกดเริ่มวิเคราะห์ ระบบจะส่งรูปภาพนี้ไปยัง OpenCV แล้วเปิดหน้าผลลัพธ์ให้อัตโนมัติ',
+                        'เมื่อกดเริ่มวิเคราะห์ ระบบจะส่งรูปภาพนี้ไปยัง FastAPI แล้วเปิดหน้าผลลัพธ์ให้อัตโนมัติ',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurface.withValues(
                             alpha: 0.72,
@@ -244,7 +254,7 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
                                 selectedImageBytes: _selectedImageBytes!,
                                 selectedImageName: _selectedImageName,
                                 description:
-                                    'พร้อมวิเคราะห์ความเข้มของสัญญาณ Fluorescent ด้วย OpenCV',
+                                    'พร้อมส่งไปวิเคราะห์ด้วย FastAPI Fluorescent Detection',
                                 isProcessing: _isAnalyzing,
                                 idleActionLabel: 'เริ่มวิเคราะห์',
                                 processingActionLabel: 'กำลังวิเคราะห์...',

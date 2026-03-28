@@ -162,8 +162,7 @@ class _WhiteBloodCellAnalysisPageState
                   description:
                       'เพื่อให้ระบบวิเคราะห์เม็ดเลือดขาวได้แม่นยำขึ้น แนะนำให้เลือกรูปที่มีคุณสมบัติตามนี้',
                   helpItems: helpItems,
-                  exampleImageUrl:
-                      'https://i0.wp.com/www.pathologystudent.com/wp-content/uploads/2009/04/leukocytes.jpg?w=500&ssl=1',
+                  exampleImagePath: 'assets/images/leukocytes.jpg',
                   exampleImageDescription: 'ขอบคุณภาพจาก Pathology Student',
                 );
               },

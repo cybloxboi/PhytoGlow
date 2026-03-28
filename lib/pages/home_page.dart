@@ -104,11 +104,7 @@ class _HomePageState extends State<HomePage>
       title: 'Phyto Glow',
       color: const Color(0xFF3F51B5),
       child: Scaffold(
-        appBar: getAppBar(
-          context,
-          'Phyto Glow',
-          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
-        ),
+        appBar: getAppBar(context, 'Phyto Glow'),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(16),

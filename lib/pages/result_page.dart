@@ -355,12 +355,20 @@ class _ResultPageState extends State<ResultPage> {
     final intensity = result?.intensityPercent ?? 0;
     return [
       _MetricTile(
-        label: 'ความเข้มสัญญาณ Fluorescent',
-        value: '${intensity.toStringAsFixed(2)}%',
+        label: 'พื้นที่เรืองแสงที่ตรวจพบ',
+        value: '${result?.area ?? 0} px',
       ),
       _MetricTile(
-        label: 'ระดับสัญญาณ',
-        value: _fluorescentLevelLabel(intensity),
+        label: 'ค่าเฉลี่ย Green Intensity',
+        value: (result?.meanIntensity ?? 0).toStringAsFixed(1),
+      ),
+      _MetricTile(
+        label: 'ค่าสูงสุด Green Intensity',
+        value: '${result?.maxIntensity ?? 0}',
+      ),
+      _MetricTile(
+        label: 'ความเข้มเฉลี่ยโดยประมาณ',
+        value: '${intensity.toStringAsFixed(2)}%',
       ),
     ];
   }
@@ -389,7 +397,7 @@ class _ResultPageState extends State<ResultPage> {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              'ภาพผลลัพธ์ด้านบนคือบริเวณที่ OpenCV ตรวจพบช่วงสีของสัญญาณเรืองแสงและทำ threshold ให้เห็นชัดขึ้น',
+              'ภาพผลลัพธ์ด้านบนคือ preview overlay จาก FastAPI โดยระบบจะ highlight บริเวณที่ตรวจผ่าน mask เป็นสีเขียว',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
               ),
@@ -451,7 +459,8 @@ class _ResultPageState extends State<ResultPage> {
     switch (type) {
       case ResultAnalysisType.fluorescent:
         final intensity = fluorescentResult?.intensityPercent ?? 0;
-        return 'แสดงภาพที่ผ่านการ threshold โดย OpenCV เพื่อเน้นบริเวณสัญญาณเรืองแสง ความเข้มรวม ${intensity.toStringAsFixed(2)}%';
+        final area = fluorescentResult?.area ?? 0;
+        return 'แสดงภาพ overlay จาก FastAPI พร้อมบริเวณเรืองแสงที่ตรวจพบ พื้นที่ $area px และความเข้มเฉลี่ย ${intensity.toStringAsFixed(2)}%';
       case ResultAnalysisType.wbc:
         return wbcPredictions.isEmpty
             ? 'ไม่พบเม็ดเลือดขาว จากผลลัพธ์ Roboflow'
@@ -459,40 +468,20 @@ class _ResultPageState extends State<ResultPage> {
     }
   }
 
-  String _fluorescentLevelLabel(double intensity) {
-    // if (intensity >= 8) {
-    //   return 'สูง';
-    // }
-    //
-    // if (intensity >= 3) {
-    //   return 'ปานกลาง';
-    // }
-    //
-    // if (intensity > 0) {
-    //   return 'ต่ำ';
-    // }
-
-    // return 'ไม่พบเด่นชัด';
-
-    return 'ยังวัดผลไม่ได้ เพราะยังไม่ได้คิด :3';
-  }
-
   String _fluorescentSummary(double intensity) {
-    // if (intensity >= 8) {
-    //   return 'ตรวจพบสัญญาณ Fluorescent ค่อนข้างชัดเจนในบริเวณที่ระบบคัดกรองไว้';
-    // }
-    //
-    // if (intensity >= 3) {
-    //   return 'ตรวจพบสัญญาณ Fluorescent ระดับปานกลาง อาจต้องพิจารณาภาพต้นฉบับร่วมด้วย';
-    // }
-    //
-    // if (intensity > 0) {
-    //   return 'ตรวจพบสัญญาณ Fluorescent เล็กน้อย ซึ่งอาจได้รับผลจากแสงหรือสภาพภาพ';
-    // }
+    if (intensity >= 75) {
+      return 'ตรวจพบสัญญาณ Fluorescent ค่อนข้างสูงจากค่าเฉลี่ยความเข้มในบริเวณที่ระบบทำ mask';
+    }
 
-    // return 'ยังไม่พบสัญญาณ Fluorescent ที่เด่นชัดจากเกณฑ์ threshold ปัจจุบัน';
+    if (intensity >= 40) {
+      return 'ตรวจพบสัญญาณ Fluorescent ระดับปานกลาง ควรพิจารณาภาพต้นฉบับและสภาพแสงร่วมด้วย';
+    }
 
-    return 'อาจจะยังนะคะ คุณน้า';
+    if (intensity > 0) {
+      return 'ตรวจพบสัญญาณ Fluorescent ระดับต่ำหรือบางส่วน อาจได้รับผลจากแสงและสภาพพื้นหลัง';
+    }
+
+    return 'ยังไม่พบบริเวณ Fluorescent ที่ผ่านเกณฑ์ threshold ของ API';
   }
 
   Uint8List get _displayImageBytes {

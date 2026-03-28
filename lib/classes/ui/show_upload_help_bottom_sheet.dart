@@ -6,7 +6,7 @@ Future<void> showUploadHelpBottomSheet(
   String title = 'คำแนะนำในการอัปโหลดภาพ',
   required String description,
   required List<HelpItem> helpItems,
-  required String exampleImageUrl,
+  required String exampleImagePath,
   required String exampleImageDescription,
 }) {
   return showModalBottomSheet(
@@ -77,8 +77,8 @@ Future<void> showUploadHelpBottomSheet(
                               borderRadius: BorderRadius.circular(10),
                               child: AspectRatio(
                                 aspectRatio: 16 / 9,
-                                child: Image.network(
-                                  exampleImageUrl,
+                                child: Image.asset(
+                                  exampleImagePath,
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -93,7 +93,7 @@ Future<void> showUploadHelpBottomSheet(
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 400),
