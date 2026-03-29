@@ -1,3 +1,5 @@
+import base64
+
 import cv2
 import numpy as np
 from fastapi import FastAPI, File, UploadFile
@@ -6,18 +8,35 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
+# =========================
+# CORS
+# =========================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://phyto-glow.vercel.app/",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["POST"],
     allow_headers=["*"],
 )
 
 
+# =========================
+# API
+# =========================
 @app.post("/fluorescent-detect")
-async def detect_fluorescent(file: UploadFile = File(...)):
+async def detect_fluorescent(
+        file: UploadFile = File(...)
+):
+    # read file
     contents = await file.read()
+
+    # check file type
+    if not file.content_type.startswith("image/"):
+        return JSONResponse(status_code=400, content={"error": "Invalid file type"})
+
+    # decode image
     np_arr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
@@ -25,28 +44,33 @@ async def detect_fluorescent(file: UploadFile = File(...)):
         return JSONResponse(status_code=400, content={"error": "Invalid image"})
 
     # =========================
-    # 1. แยก channel (ใช้ Green channel)
+    # OPTIMIZE: resize
+    # =========================
+    img = cv2.resize(img, (640, 480))
+
+    # =========================
+    # 1. ใช้ Green channel
     # =========================
     b, g, r = cv2.split(img)
 
     # =========================
-    # 2. Gaussian blur ลด noise
+    # 2. blur
     # =========================
-    blurred = cv2.GaussianBlur(g, (5, 5), 0)
+    blurred = cv2.GaussianBlur(g, (3, 3), 0)
 
     # =========================
-    # 3. Threshold (ปรับค่าได้)
+    # 3. threshold
     # =========================
     _, thresh = cv2.threshold(blurred, 200, 255, cv2.THRESH_BINARY)
 
     # =========================
-    # 4. Morphology (ลบจุด noise เล็ก ๆ)
+    # 4. morphology
     # =========================
-    kernel = np.ones((5, 5), np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
     clean = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
 
     # =========================
-    # 5. คำนวณค่า fluorescence
+    # 5. คำนวณค่า
     # =========================
     mask = clean > 0
     area = int(np.sum(mask))
@@ -54,20 +78,26 @@ async def detect_fluorescent(file: UploadFile = File(...)):
     max_intensity = int(np.max(g)) if area > 0 else 0
 
     # =========================
-    # 6. สร้างภาพ overlay (highlight)
+    # 6. overlay
     # =========================
     overlay = img.copy()
     overlay[mask] = [0, 255, 0]
 
-    # encode เป็น jpg
-    _, buffer = cv2.imencode('.jpg', overlay)
+    # =========================
+    # 7. encode → base64
+    # =========================
+    success, buffer = cv2.imencode('.jpg', overlay)
+    if not success:
+        return JSONResponse(status_code=500, content={"error": "Encode failed"})
+
+    preview_base64 = base64.b64encode(buffer).decode("utf-8")
 
     # =========================
-    # 7. response
+    # response
     # =========================
     return {
         "area": area,
         "mean_intensity": mean_intensity,
         "max_intensity": max_intensity,
-        "preview_image": buffer.tobytes().hex(),
+        "preview_image": preview_base64
     }

@@ -25,14 +25,14 @@ class _HomePageState extends State<HomePage>
       title: 'Fluorescent Detection',
       description:
           'ตรวจจับสัญญาณเรืองแสงจากภาพตัวอย่าง เพื่อช่วยประเมินปฏิกิริยา Fluorescent เบื้องต้น',
-      buttonText: 'Start Detection',
+      buttonText: 'เริ่มการตรวจจับ',
       icon: Icons.wb_sunny_outlined,
     ),
     DetectionItem(
       title: 'White Blood Cell Analysis',
       description:
           'อัปโหลดภาพเซลล์เพื่อตรวจหาเม็ดเลือดขาวและสรุปผลการวิเคราะห์จากโมเดล AI',
-      buttonText: 'Start Analysis',
+      buttonText: 'เริ่มการวิเคราะห์',
       icon: Icons.science_outlined,
     ),
   ];

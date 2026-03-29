@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:phyto_glow/classes/exception/fluorescent_exception.dart';
 import 'package:phyto_glow/classes/models/luminol_result.dart';
 import 'package:phyto_glow/config/fluorescent_api_config.dart';
@@ -24,7 +25,12 @@ class FluorescentService {
 
     final request = http.MultipartRequest('POST', Uri.parse(_endpoint))
       ..files.add(
-        http.MultipartFile.fromBytes('file', imageBytes, filename: fileName),
+        http.MultipartFile.fromBytes(
+          'file',
+          imageBytes,
+          filename: fileName,
+          contentType: _getImageMediaType(fileName),
+        ),
       );
 
     final streamedResponse = await _client.send(request);
@@ -48,8 +54,8 @@ class FluorescentService {
       throw FluorescentException(errorMessage);
     }
 
-    final previewHex = decoded['preview_image']?.toString() ?? '';
-    final previewBytes = _decodeHex(previewHex);
+    final previewBase64 = decoded['preview_image']?.toString() ?? '';
+    final previewBytes = _decodeBase64(previewBase64);
     if (previewBytes.isEmpty) {
       throw const FluorescentException(
         'Fluorescent API did not return a valid preview image.',
@@ -64,22 +70,30 @@ class FluorescentService {
     );
   }
 
-  Uint8List _decodeHex(String value) {
-    final normalized = value.trim();
-    if (normalized.isEmpty || normalized.length.isOdd) {
-      return Uint8List(0);
+  MediaType _getImageMediaType(String fileName) {
+    final lower = fileName.toLowerCase();
+
+    if (lower.endsWith('.png')) {
+      return MediaType('image', 'png');
+    } else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+      return MediaType('image', 'jpeg');
+    } else if (lower.endsWith('.webp')) {
+      return MediaType('image', 'webp');
     }
 
-    final bytes = Uint8List(normalized.length ~/ 2);
-    for (var i = 0; i < normalized.length; i += 2) {
-      final parsed = int.tryParse(normalized.substring(i, i + 2), radix: 16);
-      if (parsed == null) {
+    return MediaType('image', 'jpeg');
+  }
+
+  Uint8List _decodeBase64(String value) {
+    try {
+      if (value.isEmpty) {
         return Uint8List(0);
       }
-      bytes[i ~/ 2] = parsed;
-    }
 
-    return bytes;
+      return base64Decode(value);
+    } catch (_) {
+      return Uint8List(0);
+    }
   }
 
   int _toInt(dynamic value) {
