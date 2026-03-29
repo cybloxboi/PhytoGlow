@@ -14,7 +14,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://phyto-glow.vercel.app/",
+        "https://phyto-glow.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["POST"],
