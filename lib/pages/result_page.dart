@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -9,6 +8,11 @@ import 'package:phyto_glow/classes/models/luminol_result.dart';
 import 'package:phyto_glow/classes/roboflow/roboflow_prediction.dart';
 import 'package:phyto_glow/functions/files/download_bytes.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
+
+import '../classes/ui/result/bounding_box_painter.dart';
+import '../classes/ui/result/metric_tile.dart';
+import '../classes/ui/result/prediction_tile.dart';
+import '../classes/ui/result/section_card.dart';
 
 class ResultPage extends StatefulWidget {
   const ResultPage({super.key, required this.data});
@@ -63,7 +67,7 @@ class _ResultPageState extends State<ResultPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _SectionCard(
+                      SectionCard(
                         child: Row(
                           children: [
                             Icon(
@@ -95,7 +99,7 @@ class _ResultPageState extends State<ResultPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _SectionCard(
+                      SectionCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -121,7 +125,7 @@ class _ResultPageState extends State<ResultPage> {
                                               ResultAnalysisType.wbc)
                                             Positioned.fill(
                                               child: CustomPaint(
-                                                painter: _BoundingBoxPainter(
+                                                painter: BoundingBoxPainter(
                                                   predictions: wbcPredictions,
                                                   imageWidth: imageWidth,
                                                   imageHeight: imageHeight,
@@ -187,7 +191,7 @@ class _ResultPageState extends State<ResultPage> {
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        child: _SectionCard(
+                        child: SectionCard(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -216,7 +220,7 @@ class _ResultPageState extends State<ResultPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _SectionCard(
+                      SectionCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -234,13 +238,13 @@ class _ResultPageState extends State<ResultPage> {
                               )
                             else if (wbcPredictions.isEmpty)
                               Text(
-                                'ไม่มี prediction ที่ผ่านเงื่อนไข เม็ดเลือดขาว',
+                                'ไม่มี prediction ที่ผ่านเงื่อนไข เซลล์เม็ดเลือดขาว',
                                 style: theme.textTheme.bodyMedium,
                               )
                             else
                               ...wbcPredictions.map(
                                 (prediction) =>
-                                    _PredictionTile(prediction: prediction),
+                                    PredictionTile(prediction: prediction),
                               ),
                           ],
                         ),
@@ -328,12 +332,8 @@ class _ResultPageState extends State<ResultPage> {
 
   bool _isWbcPrediction(RoboflowPrediction prediction) {
     final normalized = prediction.label.trim().toLowerCase();
-    return normalized == 'wbc' ||
-        normalized.contains('wbc') ||
-        normalized.contains('white blood cell') ||
-        normalized.contains('white_blood_cell') ||
-        normalized.contains('white-blood-cell') ||
-        normalized.contains('leukocyte');
+
+    return normalized.contains('wbc');
   }
 
   List<Widget> _buildWbcMetricTiles(
@@ -341,8 +341,8 @@ class _ResultPageState extends State<ResultPage> {
     RoboflowPrediction? topPrediction,
   ) {
     return [
-      _MetricTile(label: 'จำนวนเม็ดเลือดขาวที่ตรวจพบ', value: '$wbcCount'),
-      _MetricTile(
+      MetricTile(label: 'จำนวนเซลล์เม็ดเลือดขาวที่ตรวจพบ', value: '$wbcCount'),
+      MetricTile(
         label: 'ความมั่นใจสูงสุด',
         value: topPrediction == null
             ? '-'
@@ -354,19 +354,21 @@ class _ResultPageState extends State<ResultPage> {
   List<Widget> _buildFluorescentMetricTiles(LuminolResult? result) {
     final intensity = result?.intensityPercent ?? 0;
     return [
-      _MetricTile(
+      MetricTile(
         label: 'พื้นที่เรืองแสงที่ตรวจพบ',
         value: '${result?.area ?? 0} px',
       ),
-      _MetricTile(
+      MetricTile(
         label: 'ค่าความเข้มเฉลี่ย',
         value: (result?.meanIntensity ?? 0).toStringAsFixed(1),
+        maxValue: '255',
       ),
-      _MetricTile(
+      MetricTile(
         label: 'ค่าความเข้มสูงสุด',
         value: '${result?.maxIntensity ?? 0}',
+        maxValue: '255',
       ),
-      _MetricTile(
+      MetricTile(
         label: 'ความเข้มเฉลี่ยโดยประมาณ',
         value: '${intensity.toStringAsFixed(2)}%',
       ),
@@ -438,7 +440,7 @@ class _ResultPageState extends State<ResultPage> {
       case ResultAnalysisType.fluorescent:
         return 'ภาพรวมผลการตรวจจับสัญญาณ Fluorescent';
       case ResultAnalysisType.wbc:
-        return 'ภาพรวมผลลัพธ์เม็ดเลือดขาวที่พบ';
+        return 'ภาพรวมผลลัพธ์เซลล์เม็ดเลือดขาวที่พบ';
     }
   }
 
@@ -447,7 +449,7 @@ class _ResultPageState extends State<ResultPage> {
       case ResultAnalysisType.fluorescent:
         return 'รายละเอียดการวิเคราะห์ Fluorescent';
       case ResultAnalysisType.wbc:
-        return 'รายละเอียดเม็ดเลือดขาว';
+        return 'รายละเอียดเซลล์เม็ดเลือดขาว';
     }
   }
 
@@ -463,8 +465,8 @@ class _ResultPageState extends State<ResultPage> {
         return 'แสดงภาพ overlay จาก FastAPI พร้อมบริเวณเรืองแสงที่ตรวจพบ พื้นที่ $area px และความเข้มเฉลี่ย ${intensity.toStringAsFixed(2)}%';
       case ResultAnalysisType.wbc:
         return wbcPredictions.isEmpty
-            ? 'ไม่พบเม็ดเลือดขาว จากผลลัพธ์ Roboflow'
-            : 'แสดงกรอบเฉพาะวัตถุที่เป็นเม็ดเลือดขาว จาก Roboflow';
+            ? 'ไม่พบเซลล์เม็ดเลือดขาว จากผลลัพธ์ Roboflow'
+            : 'แสดงกรอบเฉพาะวัตถุที่เป็นเซลล์เม็ดเลือดขาว จาก Roboflow';
     }
   }
 
@@ -491,229 +493,5 @@ class _ResultPageState extends State<ResultPage> {
     }
 
     return widget.data.imageBytes;
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
-class _MetricTile extends StatelessWidget {
-  const _MetricTile({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: 160,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PredictionTile extends StatelessWidget {
-  const _PredictionTile({required this.prediction});
-
-  final RoboflowPrediction prediction;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  prediction.label,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Text(
-                '${(prediction.confidence * 100).toStringAsFixed(1)}%',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'x: ${_formatDouble(prediction.x)}  y: ${_formatDouble(prediction.y)}  w: ${_formatDouble(prediction.width)}  h: ${_formatDouble(prediction.height)}',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDouble(double? value) {
-    if (value == null) return '-';
-    return value.toStringAsFixed(1);
-  }
-}
-
-class _BoundingBoxPainter extends CustomPainter {
-  const _BoundingBoxPainter({
-    required this.predictions,
-    required this.imageWidth,
-    required this.imageHeight,
-    required this.color,
-  });
-
-  final List<RoboflowPrediction> predictions;
-  final double? imageWidth;
-  final double? imageHeight;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final sourceWidth = imageWidth;
-    final sourceHeight = imageHeight;
-    if (sourceWidth == null ||
-        sourceHeight == null ||
-        sourceWidth <= 0 ||
-        sourceHeight <= 0) {
-      return;
-    }
-
-    final scale = math.min(
-      size.width / sourceWidth,
-      size.height / sourceHeight,
-    );
-    final drawnWidth = sourceWidth * scale;
-    final drawnHeight = sourceHeight * scale;
-    final offsetX = (size.width - drawnWidth) / 2;
-    final offsetY = (size.height - drawnHeight) / 2;
-
-    final boxPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-    final labelPaint = Paint()
-      ..color = color.withValues(alpha: 0.9)
-      ..style = PaintingStyle.fill;
-
-    for (final prediction in predictions) {
-      if (prediction.x == null ||
-          prediction.y == null ||
-          prediction.width == null ||
-          prediction.height == null) {
-        continue;
-      }
-
-      final left = offsetX + (prediction.x! - prediction.width! / 2) * scale;
-      final top = offsetY + (prediction.y! - prediction.height! / 2) * scale;
-      final rect = Rect.fromLTWH(
-        left,
-        top,
-        prediction.width! * scale,
-        prediction.height! * scale,
-      );
-
-      canvas.drawRect(rect, boxPaint);
-
-      final textSpan = TextSpan(
-        text:
-            '${prediction.label} ${(prediction.confidence * 100).toStringAsFixed(1)}%',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ),
-      );
-      final textPainter = TextPainter(
-        text: textSpan,
-        textDirection: TextDirection.ltr,
-        maxLines: 1,
-      )..layout(maxWidth: math.max(0, size.width - 16));
-
-      final labelWidth = textPainter.width + 12;
-      final labelHeight = textPainter.height + 8;
-      final labelTop = math.max(offsetY, rect.top - labelHeight);
-      final labelRect = Rect.fromLTWH(
-        rect.left,
-        labelTop,
-        labelWidth,
-        labelHeight,
-      );
-
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(labelRect, const Radius.circular(8)),
-        labelPaint,
-      );
-      textPainter.paint(canvas, Offset(labelRect.left + 6, labelRect.top + 4));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _BoundingBoxPainter oldDelegate) {
-    return oldDelegate.predictions != predictions ||
-        oldDelegate.imageWidth != imageWidth ||
-        oldDelegate.imageHeight != imageHeight ||
-        oldDelegate.color != color;
   }
 }
