@@ -24,14 +24,14 @@ class _HomePageState extends State<HomePage>
     DetectionItem(
       title: 'Fluorescent Detection',
       description:
-          'ตรวจจับสัญญาณเรืองแสงจากภาพตัวอย่าง เพื่อช่วยประเมินปฏิกิริยา Fluorescent เบื้องต้น',
+          'ตรวจจับสัญญาณเรืองแสงจากภาพตัวอย่าง เพื่อช่วยประเมินปฏิกิริยา Fluorescent เบื้องต้นด้วย OpenCV ผ่าน FastAPI ของ Phyto Glow',
       buttonText: 'เริ่มการตรวจจับ',
       icon: Icons.wb_sunny_outlined,
     ),
     DetectionItem(
       title: 'White Blood Cell Analysis',
       description:
-          'อัปโหลดภาพเซลล์เพื่อตรวจหาเม็ดเลือดขาวและสรุปผลการวิเคราะห์จากโมเดล AI',
+          'อัปโหลดภาพเซลล์เพื่อตรวจหาเม็ดเลือดขาวและสรุปผลการวิเคราะห์ด้วย RoboFlow AI Model',
       buttonText: 'เริ่มการวิเคราะห์',
       icon: Icons.science_outlined,
     ),

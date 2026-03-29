@@ -43,14 +43,6 @@ class _ResultPageState extends State<ResultPage> {
     final topPrediction = wbcPredictions.isEmpty ? null : wbcPredictions.first;
     final imageWidth = wbcResult?.imageWidth?.toDouble();
     final imageHeight = wbcResult?.imageHeight?.toDouble();
-    final aspectRatio =
-        resultType == ResultAnalysisType.wbc &&
-            imageWidth != null &&
-            imageHeight != null &&
-            imageWidth > 0 &&
-            imageHeight > 0
-        ? imageWidth / imageHeight
-        : 4 / 3;
 
     return Title(
       title: 'Phyto Glow',
@@ -112,31 +104,27 @@ class _ResultPageState extends State<ResultPage> {
                                     constraints: const BoxConstraints(
                                       maxHeight: 320,
                                     ),
-                                    child: AspectRatio(
-                                      aspectRatio: aspectRatio,
-                                      child: Stack(
-                                        fit: StackFit.expand,
-                                        children: [
-                                          Image.memory(
-                                            _displayImageBytes,
-                                            fit: BoxFit.contain,
-                                          ),
-                                          if (resultType ==
-                                              ResultAnalysisType.wbc)
-                                            Positioned.fill(
-                                              child: CustomPaint(
-                                                painter: BoundingBoxPainter(
-                                                  predictions: wbcPredictions,
-                                                  imageWidth: imageWidth,
-                                                  imageHeight: imageHeight,
-                                                  color: theme
-                                                      .colorScheme
-                                                      .secondary,
-                                                ),
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        Image.memory(
+                                          _displayImageBytes,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        if (resultType ==
+                                            ResultAnalysisType.wbc)
+                                          Positioned.fill(
+                                            child: CustomPaint(
+                                              painter: BoundingBoxPainter(
+                                                predictions: wbcPredictions,
+                                                imageWidth: imageWidth,
+                                                imageHeight: imageHeight,
+                                                color:
+                                                    theme.colorScheme.secondary,
                                               ),
                                             ),
-                                        ],
-                                      ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 ),

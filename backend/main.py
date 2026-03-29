@@ -80,6 +80,7 @@ async def detect_fluorescent(
     # 7. encode → base64
     # =========================
     success, buffer = cv2.imencode('.jpg', overlay)
+
     if not success:
         return JSONResponse(status_code=500, content={"error": "Encode failed"})
 

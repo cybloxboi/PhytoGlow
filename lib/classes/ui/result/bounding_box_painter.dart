@@ -21,6 +21,7 @@ class BoundingBoxPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final sourceWidth = imageWidth;
     final sourceHeight = imageHeight;
+
     if (sourceWidth == null ||
         sourceHeight == null ||
         sourceWidth <= 0 ||

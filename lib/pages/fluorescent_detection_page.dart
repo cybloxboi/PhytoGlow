@@ -24,10 +24,6 @@ class FluorescentDetectionPage extends StatefulWidget {
 class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
   static const double _pageMaxWidth = 700;
   static const double _previewMaxHeight = 320;
-  static const double _previewAspectRatio = 4 / 3;
-  static const double _cardHorizontalPadding = 16;
-  static const double _cardMaxWidth =
-      (_previewMaxHeight * _previewAspectRatio) + (_cardHorizontalPadding * 2);
 
   Uint8List? _selectedImageBytes;
   String? _selectedImageName;
@@ -247,12 +243,10 @@ class _FluorescentDetectionPageState extends State<FluorescentDetectionPage> {
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 220),
                         child: _selectedImageBytes == null
-                            ? buildEmptyState(theme, _cardMaxWidth)
+                            ? buildEmptyState(theme)
                             : buildSelectedImageCard(
                                 theme,
-                                cardMaxWidth: _cardMaxWidth,
                                 previewMaxHeight: _previewMaxHeight,
-                                previewAspectRatio: _previewAspectRatio,
                                 selectedImageBytes: _selectedImageBytes!,
                                 selectedImageName: _selectedImageName,
                                 description:
