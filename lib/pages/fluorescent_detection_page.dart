@@ -6,8 +6,8 @@ import 'package:phyto_glow/functions/ui/app_bar.dart';
 
 import '../classes/exception/fluorescent_exception.dart';
 import '../classes/exception/image_selection_exception.dart';
-import '../classes/ui/help_item.dart';
-import '../classes/ui/show_upload_help_bottom_sheet.dart';
+import '../classes/ui/functions/help_item.dart';
+import '../classes/ui/functions/show_upload_help_bottom_sheet.dart';
 import '../functions/files/pick_image_bytes.dart';
 import '../functions/ui/upload_image/build_empty_state.dart';
 import '../functions/ui/upload_image/build_selected_image_card.dart';

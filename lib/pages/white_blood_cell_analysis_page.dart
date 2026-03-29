@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phyto_glow/classes/data/result_page_data.dart';
-import 'package:phyto_glow/classes/ui/help_item.dart';
+import 'package:phyto_glow/classes/ui/functions/help_item.dart';
 import 'package:phyto_glow/functions/files/pick_image_bytes.dart';
 import 'package:phyto_glow/functions/ui/app_bar.dart';
 import 'package:phyto_glow/functions/ui/upload_image/build_empty_state.dart';
@@ -11,7 +11,7 @@ import 'package:phyto_glow/services/roboflow_service.dart';
 
 import '../classes/exception/image_selection_exception.dart';
 import '../classes/exception/roboflow_exception.dart';
-import '../classes/ui/show_upload_help_bottom_sheet.dart';
+import '../classes/ui/functions/show_upload_help_bottom_sheet.dart';
 
 class WhiteBloodCellAnalysisPage extends StatefulWidget {
   const WhiteBloodCellAnalysisPage({super.key});

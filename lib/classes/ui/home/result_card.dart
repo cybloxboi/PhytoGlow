@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/detection_result.dart';
+import '../../models/detection_result.dart';
 
 class ResultCard extends StatelessWidget {
   final DetectionResult item;

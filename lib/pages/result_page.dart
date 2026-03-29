@@ -462,7 +462,7 @@ class _ResultPageState extends State<ResultPage> {
       case ResultAnalysisType.fluorescent:
         final intensity = fluorescentResult?.intensityPercent ?? 0;
         final area = fluorescentResult?.area ?? 0;
-        return 'แสดงภาพ overlay จาก FastAPI พร้อมบริเวณเรืองแสงที่ตรวจพบ พื้นที่ $area px และความเข้มเฉลี่ย ${intensity.toStringAsFixed(2)}%';
+        return 'แสดงภาพ Overlay สีเขียวในบริเวณเรืองแสงที่ตรวจพบจาก FastAPI - พื้นที่ $area px และความเข้มเฉลี่ย ${intensity.toStringAsFixed(2)}%';
       case ResultAnalysisType.wbc:
         return wbcPredictions.isEmpty
             ? 'ไม่พบเซลล์เม็ดเลือดขาว จากผลลัพธ์ Roboflow'

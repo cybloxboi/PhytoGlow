@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phyto_glow/classes/ui/help_item.dart';
+import 'package:phyto_glow/classes/ui/functions/help_item.dart';
 
 Future<void> showUploadHelpBottomSheet(
   BuildContext context, {
