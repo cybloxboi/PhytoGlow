@@ -359,11 +359,11 @@ class _ResultPageState extends State<ResultPage> {
         value: '${result?.area ?? 0} px',
       ),
       _MetricTile(
-        label: 'ค่าเฉลี่ย Green Intensity',
+        label: 'ค่าความเข้มเฉลี่ย',
         value: (result?.meanIntensity ?? 0).toStringAsFixed(1),
       ),
       _MetricTile(
-        label: 'ค่าสูงสุด Green Intensity',
+        label: 'ค่าความเข้มสูงสุด',
         value: '${result?.maxIntensity ?? 0}',
       ),
       _MetricTile(
