@@ -42,11 +42,6 @@ async def detect_fluorescent(
         return JSONResponse(status_code=400, content={"error": "Invalid image"})
 
     # =========================
-    # OPTIMIZE: resize
-    # =========================
-    img = cv2.resize(img, (640, 480))
-
-    # =========================
     # 1. ใช้ Green channel
     # =========================
     b, g, r = cv2.split(img)
