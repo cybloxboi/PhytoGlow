@@ -6,11 +6,13 @@ class MetricTile extends StatelessWidget {
     required this.label,
     required this.value,
     this.maxValue,
+    this.isPrimary = false,
   });
 
   final String label;
   final String value;
   final String? maxValue;
+  final bool isPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +42,7 @@ class MetricTile extends StatelessWidget {
                 value,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
+                  color: isPrimary ? theme.colorScheme.primary : null,
                 ),
               ),
               if (maxValue != null) ...[

@@ -54,19 +54,26 @@ class FluorescentService {
       throw FluorescentException(errorMessage);
     }
 
-    final previewBase64 = decoded['preview_image']?.toString() ?? '';
-    final previewBytes = _decodeBase64(previewBase64);
-    if (previewBytes.isEmpty) {
+    final overlayBytes = _decodeBase64(
+      decoded['preview_overlay']?.toString() ?? '',
+    );
+
+    if (overlayBytes.isEmpty) {
       throw const FluorescentException(
         'Fluorescent API did not return a valid preview image.',
       );
     }
 
     return LuminolResult(
-      previewBytes: previewBytes,
-      area: _toInt(decoded['area']),
-      meanIntensity: _toDouble(decoded['mean_intensity']),
-      maxIntensity: _toInt(decoded['max_intensity']),
+      previewBytes: overlayBytes,
+      intensityPercent: _toDouble(decoded['intensity_percentage']),
+      areaPercent: _toDouble(decoded['area_percent']),
+      snr: _toDouble(decoded['snr']),
+      meanForeground: _toDouble(decoded['mean_foreground']),
+      meanBackground: _toDouble(decoded['mean_background']),
+      otsuThreshold: _toDouble(decoded['otsu_threshold']),
+      regionCount: _toInt(decoded['region_count']),
+      largestAreaPx: _toInt(decoded['largest_area_px']),
     );
   }
 

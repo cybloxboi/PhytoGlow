@@ -105,7 +105,6 @@ class _ResultPageState extends State<ResultPage> {
                                       maxHeight: 320,
                                     ),
                                     child: Stack(
-                                      fit: StackFit.expand,
                                       children: [
                                         Image.memory(
                                           _displayImageBytes,
@@ -341,24 +340,55 @@ class _ResultPageState extends State<ResultPage> {
 
   List<Widget> _buildFluorescentMetricTiles(LuminolResult? result) {
     final intensity = result?.intensityPercent ?? 0;
+    final areaPercent = result?.areaPercent ?? 0;
+    final snr = result?.snr ?? 0;
+    final meanForeground = result?.areaPercent ?? 0;
+    final meanBackground = result?.areaPercent ?? 0;
+    final otsuThreshold = result?.otsuThreshold ?? 0;
+    final regionCount = result?.regionCount ?? 0;
+    final largestAreaPx = result?.largestAreaPx ?? 0;
+    double confidence = (snr * 10).clamp(0, 100);
+    bool isReliable = snr >= 3;
+    bool isLargeArea = areaPercent >= 5;
+
     return [
       MetricTile(
-        label: 'พื้นที่เรืองแสงที่ตรวจพบ',
-        value: '${result?.area ?? 0} px',
-      ),
-      MetricTile(
-        label: 'ค่าความเข้มเฉลี่ย',
-        value: (result?.meanIntensity ?? 0).toStringAsFixed(1),
-        maxValue: '255',
-      ),
-      MetricTile(
-        label: 'ค่าความเข้มสูงสุด',
-        value: '${result?.maxIntensity ?? 0}',
-        maxValue: '255',
-      ),
-      MetricTile(
-        label: 'ความเข้มเฉลี่ยโดยประมาณ',
+        label: 'เปอร์เซ็นต์ความเข้ม',
         value: '${intensity.toStringAsFixed(2)}%',
+        isPrimary: isReliable && isLargeArea,
+      ),
+      MetricTile(
+        label: 'ความมั่นใจ',
+        value: '${confidence.toStringAsFixed(2)}%',
+        isPrimary: true,
+      ),
+      MetricTile(
+        label: 'อัตราส่วนสัญญาณต่อสัญญาณรบกวน (SNR)',
+        value: snr.toStringAsFixed(2),
+        isPrimary: !isReliable,
+      ),
+      MetricTile(
+        label: 'เปอร์เซ็นต์พื้นที่',
+        value: '${areaPercent.toStringAsFixed(2)}%',
+      ),
+      MetricTile(
+        label: 'ค่าเฉลี่ยความเข้มของวัตถุ',
+        value: meanForeground.toStringAsFixed(2),
+        maxValue: '255',
+      ),
+      MetricTile(
+        label: 'ค่าเฉลี่ยความเข้มของพื้นหลัง',
+        value: meanBackground.toStringAsFixed(2),
+        maxValue: '255',
+      ),
+      MetricTile(
+        label: 'ค่าเกณฑ์ Otsu',
+        value: otsuThreshold.toStringAsFixed(2),
+      ),
+      MetricTile(label: 'จำนวนบริเวณ', value: '$regionCount จุด'),
+      MetricTile(
+        label: 'พื้นที่บริเวณที่ใหญ่ที่สุด',
+        value: '$largestAreaPx px²',
       ),
     ];
   }
@@ -369,9 +399,12 @@ class _ResultPageState extends State<ResultPage> {
   ) {
     final theme = Theme.of(context);
     final intensity = result?.intensityPercent ?? 0;
+    final areaPercent = result?.areaPercent ?? 0;
+    final snr = result?.snr ?? 0;
+
     return [
       Text(
-        _fluorescentSummary(intensity),
+        _fluorescentSummary(intensity: intensity, area: areaPercent, snr: snr),
         style: theme.textTheme.bodyLarge?.copyWith(
           color: theme.colorScheme.primary,
           fontWeight: FontWeight.bold,
@@ -383,27 +416,11 @@ class _ResultPageState extends State<ResultPage> {
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.help_outline_rounded, color: theme.colorScheme.secondary),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              'ภาพผลลัพธ์ด้านบนคือ preview overlay จาก FastAPI โดยระบบจะ highlight บริเวณที่ตรวจผ่าน mask เป็นสีเขียว',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-              ),
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
           Icon(Icons.error, color: Colors.red),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              'ข้อมูลนี้ใช้สำหรับการเปรียบเทียบความเข้มในเบื้องต้นเท่านั้น ไม่สามารถใช้ทดแทนเครื่องมือทางวิทยาศาสตร์ได้ ควรให้ผู้เชี่ยวชาญเป็นผู้ประเมิน และพิจารณาร่วมกับปัจจัยในการถ่ายภาพ เช่น แสง การตั้งค่า white balance และระยะห่างจากตัวอย่าง',
+              'ข้อมูลนี้ใช้สำหรับการเปรียบเทียบความเข้มในเบื้องต้นเท่านั้น ไม่สามารถใช้ทดแทนเครื่องมือทางวิทยาศาสตร์ได้ ควรให้ผู้เชี่ยวชาญเป็นผู้ประเมิน และพิจารณาร่วมกับปัจจัยในการถ่ายภาพ เช่น แสง การตั้งค่า White Balance และระยะห่างจากตัวอย่าง',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
               ),
@@ -449,8 +466,7 @@ class _ResultPageState extends State<ResultPage> {
     switch (type) {
       case ResultAnalysisType.fluorescent:
         final intensity = fluorescentResult?.intensityPercent ?? 0;
-        final area = fluorescentResult?.area ?? 0;
-        return 'แสดงภาพ Overlay สีเขียวในบริเวณเรืองแสงที่ตรวจพบจาก FastAPI - พื้นที่ $area px และความเข้มเฉลี่ย ${intensity.toStringAsFixed(2)}%';
+        return 'แสดงภาพ Overlay สีเขียวในบริเวณเรืองแสงที่ตรวจพบจาก FastAPI - ความเข้มเฉลี่ย ${intensity.toStringAsFixed(2)}%';
       case ResultAnalysisType.wbc:
         return wbcPredictions.isEmpty
             ? 'ไม่พบเซลล์เม็ดเลือดขาว จากผลลัพธ์ Roboflow'
@@ -458,25 +474,45 @@ class _ResultPageState extends State<ResultPage> {
     }
   }
 
-  String _fluorescentSummary(double intensity) {
-    if (intensity >= 75) {
-      return 'ตรวจพบสัญญาณ Fluorescent ค่อนข้างสูงจากค่าเฉลี่ยความเข้มในบริเวณที่ระบบทำ mask';
+  String _fluorescentSummary({
+    required double intensity,
+    required double area,
+    required double snr,
+  }) {
+    // ❌ ไม่มี signal จริง
+    if (intensity <= 0 || area <= 0) {
+      return 'ยังไม่พบบริเวณ Fluorescent ที่ชัดเจนจากการประมวลผล';
     }
 
-    if (intensity >= 40) {
-      return 'ตรวจพบสัญญาณ Fluorescent ระดับปานกลาง ควรพิจารณาภาพต้นฉบับและสภาพแสงร่วมด้วย';
+    // 🔴 สัญญาณสูง + น่าเชื่อถือ
+    if (intensity >= 70 && snr >= 5 && area >= 5) {
+      return 'ตรวจพบสัญญาณ Fluorescent ในระดับสูงและมีความน่าเชื่อถือ โดยมีทั้งความเข้มและพื้นที่ชัดเจน';
     }
 
+    // 🟠 สัญญาณปานกลาง
+    if (intensity >= 40 && snr >= 2) {
+      return 'ตรวจพบสัญญาณ Fluorescent ระดับปานกลาง ควรพิจารณาภาพต้นฉบับและสภาพแสงเพิ่มเติม';
+    }
+
+    // 🟡 สัญญาณต่ำ
     if (intensity > 0) {
-      return 'ตรวจพบสัญญาณ Fluorescent ระดับต่ำหรือบางส่วน อาจได้รับผลจากแสงและสภาพพื้นหลัง';
+      if (snr < 2) {
+        return 'ตรวจพบสัญญาณ Fluorescent เล็กน้อย แต่มีความไม่แน่นอนสูง อาจเกิดจาก noise หรือพื้นหลัง';
+      }
+
+      if (area < 2) {
+        return 'ตรวจพบสัญญาณ Fluorescent ในบางจุด แต่มีพื้นที่น้อย อาจเป็นจุดรบกวนหรือ artifact';
+      }
+
+      return 'ตรวจพบสัญญาณ Fluorescent ระดับต่ำ ควรตรวจสอบเพิ่มเติม';
     }
 
-    return 'ยังไม่พบบริเวณ Fluorescent ที่ผ่านเกณฑ์ threshold ของ API';
+    return 'ไม่สามารถสรุปผลได้';
   }
 
   Uint8List get _displayImageBytes {
     if (widget.data.isFluorescent) {
-      return widget.data.fluorescentResult?.thresholdedBytes ??
+      return widget.data.fluorescentResult?.previewBytes ??
           widget.data.imageBytes;
     }
 

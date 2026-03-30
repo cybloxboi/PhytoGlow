@@ -3,23 +3,23 @@ import 'dart:typed_data';
 class LuminolResult {
   const LuminolResult({
     required this.previewBytes,
-    required this.area,
-    required this.meanIntensity,
-    required this.maxIntensity,
-    this.intensityPercentOverride,
+    required this.intensityPercent,
+    required this.areaPercent,
+    required this.snr,
+    required this.meanForeground,
+    required this.meanBackground,
+    required this.otsuThreshold,
+    required this.regionCount,
+    required this.largestAreaPx,
   });
 
   final Uint8List previewBytes;
-  final int area;
-  final double meanIntensity;
-  final int maxIntensity;
-  final double? intensityPercentOverride;
-
-  Uint8List get thresholdedBytes => previewBytes;
-
-  double get normalizedMeanIntensity => (meanIntensity / 255.0).clamp(0.0, 1.0);
-
-  double get intensityPercent =>
-      intensityPercentOverride ??
-      (normalizedMeanIntensity * 100).clamp(0.0, 100.0);
+  final double intensityPercent;
+  final double areaPercent;
+  final double snr;
+  final double meanForeground;
+  final double meanBackground;
+  final double otsuThreshold;
+  final int regionCount;
+  final int largestAreaPx;
 }
