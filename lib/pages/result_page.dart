@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 import 'package:phyto_glow/classes/data/result_page_data.dart';
 import 'package:phyto_glow/classes/models/luminol_result.dart';
 import 'package:phyto_glow/classes/roboflow/roboflow_prediction.dart';
@@ -339,56 +340,62 @@ class _ResultPageState extends State<ResultPage> {
   }
 
   List<Widget> _buildFluorescentMetricTiles(LuminolResult? result) {
-    final intensity = result?.intensityPercent ?? 0;
-    final areaPercent = result?.areaPercent ?? 0;
-    final snr = result?.snr ?? 0;
-    final meanForeground = result?.areaPercent ?? 0;
-    final meanBackground = result?.areaPercent ?? 0;
-    final otsuThreshold = result?.otsuThreshold ?? 0;
+    final intensity = result?.intensityPercent ?? 0.0;
+    final areaPercent = result?.areaPercent ?? 0.0;
+    final snr = result?.snr ?? 0.0;
+    final meanForeground = result?.meanForeground ?? 0.0;
+    final meanBackground = result?.meanBackground ?? 0.0;
+    final otsuThreshold = result?.otsuThreshold ?? 0.0;
     final regionCount = result?.regionCount ?? 0;
     final largestAreaPx = result?.largestAreaPx ?? 0;
-    double confidence = (snr * 10).clamp(0, 100);
-    bool isReliable = snr >= 3;
-    bool isLargeArea = areaPercent >= 5;
+
+    final double confidence = (snr * 10).clamp(0, 100);
+    final bool isReliable = snr >= 3;
+    final bool isLargeArea = areaPercent >= 5;
+
+    String pct(double v) => '${v.toStringAsFixed(1)}%';
+    String dec(double v, {int decimals = 1}) => v.toStringAsFixed(decimals);
+    String px(int v) => NumberFormat('#,###').format(v);
 
     return [
+      // ── Primary metrics ─────────────────────────────────────
       MetricTile(
-        label: 'เปอร์เซ็นต์ความเข้ม',
-        value: '${intensity.toStringAsFixed(2)}%',
+        label: 'ความเข้มแสง Fluorescence',
+        value: pct(intensity),
         isPrimary: isReliable && isLargeArea,
       ),
       MetricTile(
-        label: 'ความมั่นใจ',
-        value: '${confidence.toStringAsFixed(2)}%',
+        label: 'ความมั่นใจในผลลัพธ์',
+        value: pct(confidence),
         isPrimary: true,
       ),
+      MetricTile(label: 'พื้นที่ที่เรืองแสง', value: pct(areaPercent)),
+
+      // ── Signal quality ───────────────────────────────────────
       MetricTile(
-        label: 'อัตราส่วนสัญญาณต่อสัญญาณรบกวน (SNR)',
-        value: snr.toStringAsFixed(2),
+        label: 'SNR (สัญญาณต่อสัญญาณรบกวน)',
+        value: dec(snr, decimals: 2),
         isPrimary: !isReliable,
       ),
+
+      // ── Raw values ───────────────────────────────────────────
       MetricTile(
-        label: 'เปอร์เซ็นต์พื้นที่',
-        value: '${areaPercent.toStringAsFixed(2)}%',
+        label: 'ความเข้มเฉลี่ย (Foreground)',
+        value: dec(meanForeground),
+        maxValue: '255.0',
       ),
       MetricTile(
-        label: 'ค่าเฉลี่ยความเข้มของวัตถุ',
-        value: meanForeground.toStringAsFixed(2),
-        maxValue: '255',
+        label: 'ความเข้มเฉลี่ย (Background)',
+        value: dec(meanBackground),
+        maxValue: '255.0',
       ),
-      MetricTile(
-        label: 'ค่าเฉลี่ยความเข้มของพื้นหลัง',
-        value: meanBackground.toStringAsFixed(2),
-        maxValue: '255',
-      ),
-      MetricTile(
-        label: 'ค่าเกณฑ์ Otsu',
-        value: otsuThreshold.toStringAsFixed(2),
-      ),
-      MetricTile(label: 'จำนวนบริเวณ', value: '$regionCount จุด'),
+      MetricTile(label: 'ค่าเกณฑ์ Otsu', value: dec(otsuThreshold)),
+
+      // ── Region info ──────────────────────────────────────────
+      MetricTile(label: 'จำนวนบริเวณที่ตรวจพบ', value: '$regionCount จุด'),
       MetricTile(
         label: 'พื้นที่บริเวณที่ใหญ่ที่สุด',
-        value: '$largestAreaPx px²',
+        value: '${px(largestAreaPx)} px²',
       ),
     ];
   }
@@ -398,13 +405,10 @@ class _ResultPageState extends State<ResultPage> {
     LuminolResult? result,
   ) {
     final theme = Theme.of(context);
-    final intensity = result?.intensityPercent ?? 0;
-    final areaPercent = result?.areaPercent ?? 0;
-    final snr = result?.snr ?? 0;
 
     return [
       Text(
-        _fluorescentSummary(intensity: intensity, area: areaPercent, snr: snr),
+        _fluorescentSummary(result: result),
         style: theme.textTheme.bodyLarge?.copyWith(
           color: theme.colorScheme.primary,
           fontWeight: FontWeight.bold,
@@ -466,7 +470,7 @@ class _ResultPageState extends State<ResultPage> {
     switch (type) {
       case ResultAnalysisType.fluorescent:
         final intensity = fluorescentResult?.intensityPercent ?? 0;
-        return 'แสดงภาพ Overlay สีเขียวในบริเวณเรืองแสงที่ตรวจพบจาก FastAPI - ความเข้มเฉลี่ย ${intensity.toStringAsFixed(2)}%';
+        return 'แสดงภาพ Overlay สีเขียวในบริเวณเรืองแสงที่ตรวจพบจาก FastAPI - ความเข้มแสง Fluorescence ${intensity.toStringAsFixed(1)}%';
       case ResultAnalysisType.wbc:
         return wbcPredictions.isEmpty
             ? 'ไม่พบเซลล์เม็ดเลือดขาว จากผลลัพธ์ Roboflow'
@@ -474,40 +478,82 @@ class _ResultPageState extends State<ResultPage> {
     }
   }
 
-  String _fluorescentSummary({
-    required double intensity,
-    required double area,
-    required double snr,
-  }) {
-    // ❌ ไม่มี signal จริง
-    if (intensity <= 0 || area <= 0) {
-      return 'ยังไม่พบบริเวณ Fluorescent ที่ชัดเจนจากการประมวลผล';
+  String _fluorescentSummary({required LuminolResult? result}) {
+    // ── ประเมินระดับความเข้มแสง ──────────────────────────────────
+    final intensityPercent = result?.intensityPercent ?? 0;
+    final String intensityLevel;
+    if (intensityPercent >= 60) {
+      intensityLevel = 'สูงมาก';
+    } else if (intensityPercent >= 40) {
+      intensityLevel = 'สูง';
+    } else if (intensityPercent >= 20) {
+      intensityLevel = 'ปานกลาง';
+    } else if (intensityPercent > 0) {
+      intensityLevel = 'ต่ำ';
+    } else {
+      intensityLevel = 'ไม่พบ';
     }
 
-    // 🔴 สัญญาณสูง + น่าเชื่อถือ
-    if (intensity >= 70 && snr >= 5 && area >= 5) {
-      return 'ตรวจพบสัญญาณ Fluorescent ในระดับสูงและมีความน่าเชื่อถือ โดยมีทั้งความเข้มและพื้นที่ชัดเจน';
+    // ── ประเมินพื้นที่ ────────────────────────────────────────────
+    final String areaLevel;
+    final areaPercent = result?.areaPercent ?? 0;
+    if (areaPercent >= 30) {
+      areaLevel = 'กระจายทั่วบริเวณ';
+    } else if (areaPercent >= 10) {
+      areaLevel = 'กระจายในบางบริเวณ';
+    } else if (areaPercent > 0) {
+      areaLevel = 'พบเฉพาะจุด';
+    } else {
+      areaLevel = 'ไม่พบ';
     }
 
-    // 🟠 สัญญาณปานกลาง
-    if (intensity >= 40 && snr >= 2) {
-      return 'ตรวจพบสัญญาณ Fluorescent ระดับปานกลาง ควรพิจารณาภาพต้นฉบับและสภาพแสงเพิ่มเติม';
+    // ── ประเมินคุณภาพ signal ─────────────────────────────────────
+    final String signalQuality;
+    final snr = result?.snr ?? 0;
+    if (snr >= 10) {
+      signalQuality = 'ชัดเจนมาก';
+    } else if (snr >= 3) {
+      signalQuality = 'ชัดเจน';
+    } else if (snr >= 1) {
+      signalQuality = 'อ่อน อาจมีสัญญาณรบกวน';
+    } else {
+      signalQuality = 'ไม่ชัดเจน';
     }
 
-    // 🟡 สัญญาณต่ำ
-    if (intensity > 0) {
-      if (snr < 2) {
-        return 'ตรวจพบสัญญาณ Fluorescent เล็กน้อย แต่มีความไม่แน่นอนสูง อาจเกิดจาก noise หรือพื้นหลัง';
-      }
-
-      if (area < 2) {
-        return 'ตรวจพบสัญญาณ Fluorescent ในบางจุด แต่มีพื้นที่น้อย อาจเป็นจุดรบกวนหรือ artifact';
-      }
-
-      return 'ตรวจพบสัญญาณ Fluorescent ระดับต่ำ ควรตรวจสอบเพิ่มเติม';
+    // ── ประเมิน region ───────────────────────────────────────────
+    final String regionDesc;
+    final regionCount = result?.regionCount ?? 0;
+    if (regionCount == 0) {
+      regionDesc = 'ไม่พบบริเวณที่เรืองแสง';
+    } else if (regionCount <= 5) {
+      regionDesc = 'พบบริเวณที่เรืองแสง $regionCount จุด';
+    } else {
+      regionDesc = 'พบบริเวณที่เรืองแสงกระจายตัว $regionCount จุด';
     }
 
-    return 'ไม่สามารถสรุปผลได้';
+    // ── คำแนะนำ ──────────────────────────────────────────────────
+    final String suggestion;
+    if (snr < 1 || intensityPercent == 0) {
+      suggestion =
+          'แนะนำให้ตรวจสอบคุณภาพภาพ '
+          'หรือปรับเงื่อนไขการถ่ายภาพก่อนวิเคราะห์ซ้ำ';
+    } else if (snr < 3) {
+      suggestion =
+          'ผลอาจคลาดเคลื่อนเนื่องจาก SNR ต่ำ '
+          'ควรถ่ายภาพในสภาพแสงที่เหมาะสมกว่านี้';
+    } else if (intensityPercent >= 20 && areaPercent >= 5) {
+      suggestion = 'ผลการวิเคราะห์มีความน่าเชื่อถือ สามารถนำไปใช้ประเมินผลได้';
+    } else {
+      suggestion = 'ตรวจพบสัญญาณในระดับต่ำ ควรเปรียบเทียบกับภาพ control';
+    }
+
+    // ── สร้างข้อความสรุป ─────────────────────────────────────────
+    return 'ตรวจพบความเข้มแสง Fluorescence อยู่ในระดับ$intensityLevel '
+        '(${intensityPercent.toStringAsFixed(1)}%) '
+        '$areaLevel คิดเป็น ${areaPercent.toStringAsFixed(1)}% ของภาพทั้งหมด '
+        '$regionDesc '
+        'คุณภาพสัญญาณ$signalQuality (SNR ${snr.toStringAsFixed(2)}) '
+        '$suggestion';
   }
 
   Uint8List get _displayImageBytes {
