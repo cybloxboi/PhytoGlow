@@ -348,37 +348,24 @@ class _ResultPageState extends State<ResultPage> {
     final otsuThreshold = result?.otsuThreshold ?? 0.0;
     final regionCount = result?.regionCount ?? 0;
     final largestAreaPx = result?.largestAreaPx ?? 0;
-
-    final double confidence = (snr * 10).clamp(0, 100);
     final bool isReliable = snr >= 3;
-    final bool isLargeArea = areaPercent >= 5;
 
     String pct(double v) => '${v.toStringAsFixed(1)}%';
     String dec(double v, {int decimals = 1}) => v.toStringAsFixed(decimals);
     String px(int v) => NumberFormat('#,###').format(v);
 
     return [
-      // ── Primary metrics ─────────────────────────────────────
       MetricTile(
-        label: 'ความเข้มแสง Fluorescence',
+        label: 'ความเข้มแสง Fluorescent',
         value: pct(intensity),
-        isPrimary: isReliable && isLargeArea,
-      ),
-      MetricTile(
-        label: 'ความมั่นใจในผลลัพธ์',
-        value: pct(confidence),
         isPrimary: true,
       ),
-      MetricTile(label: 'พื้นที่ที่เรืองแสง', value: pct(areaPercent)),
-
-      // ── Signal quality ───────────────────────────────────────
       MetricTile(
         label: 'SNR (สัญญาณต่อสัญญาณรบกวน)',
         value: dec(snr, decimals: 2),
-        isPrimary: !isReliable,
+        isPrimary: isReliable,
       ),
-
-      // ── Raw values ───────────────────────────────────────────
+      MetricTile(label: 'เปอร์เซ็นท์ของพื้นที่', value: pct(areaPercent)),
       MetricTile(
         label: 'ความเข้มเฉลี่ย (Foreground)',
         value: dec(meanForeground),
@@ -390,8 +377,6 @@ class _ResultPageState extends State<ResultPage> {
         maxValue: '255.0',
       ),
       MetricTile(label: 'ค่าเกณฑ์ Otsu', value: dec(otsuThreshold)),
-
-      // ── Region info ──────────────────────────────────────────
       MetricTile(label: 'จำนวนบริเวณที่ตรวจพบ', value: '$regionCount จุด'),
       MetricTile(
         label: 'พื้นที่บริเวณที่ใหญ่ที่สุด',
@@ -470,7 +455,7 @@ class _ResultPageState extends State<ResultPage> {
     switch (type) {
       case ResultAnalysisType.fluorescent:
         final intensity = fluorescentResult?.intensityPercent ?? 0;
-        return 'แสดงภาพ Overlay สีเขียวในบริเวณเรืองแสงที่ตรวจพบจาก FastAPI - ความเข้มแสง Fluorescence ${intensity.toStringAsFixed(1)}%';
+        return 'แสดงภาพ Overlay สีเขียวในบริเวณเรืองแสงที่ตรวจพบจาก FastAPI - ความเข้มแสง Fluorescent ${intensity.toStringAsFixed(1)}%';
       case ResultAnalysisType.wbc:
         return wbcPredictions.isEmpty
             ? 'ไม่พบเซลล์เม็ดเลือดขาว จากผลลัพธ์ Roboflow'
@@ -548,7 +533,7 @@ class _ResultPageState extends State<ResultPage> {
     }
 
     // ── สร้างข้อความสรุป ─────────────────────────────────────────
-    return 'ตรวจพบความเข้มแสง Fluorescence อยู่ในระดับ$intensityLevel '
+    return 'ตรวจพบความเข้มแสง Fluorescent อยู่ในระดับ$intensityLevel '
         '(${intensityPercent.toStringAsFixed(1)}%) '
         '$areaLevel คิดเป็น ${areaPercent.toStringAsFixed(1)}% ของภาพทั้งหมด '
         '$regionDesc '
